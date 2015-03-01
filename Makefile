@@ -10,4 +10,4 @@ all: $(subst .diff,.apply,$(wildcard *.diff)) clean
 
 .PHONY: clean
 clean:
-	cd mercury && $(GIT) checkout .
+	cd mercury && $(GIT) checkout . && $(GIT) clean -f
