@@ -1,0 +1,385 @@
+diff --git a/extras/base64/Mercury.options b/extras/base64/Mercury.options
+index 4ed60c8..f50fdfc 100644
+--- a/extras/base64/Mercury.options
++++ b/extras/base64/Mercury.options
+@@ -1,7 +1,7 @@
+ # The base64 module (currently) only provides a C implementation of the
+ # encoder / decoder.  Compilation will fail if we attempt to build it
+ # in a non-C grade.
+-
++MAIN_TARGET=libmercury_base64
+ MCFLAGS += --libgrades-exclude-component java 
+ MCFLAGS += --libgrades-exclude-component csharp
+ MCFLAGS += --libgrades-exclude-component erlang
+diff --git a/extras/complex_numbers/Mercury.options b/extras/complex_numbers/Mercury.options
+new file mode 100644
+index 0000000..6660f5a
+--- /dev/null
++++ b/extras/complex_numbers/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=libcomplex_numbers
+diff --git a/extras/complex_numbers/samples/Mercury.options b/extras/complex_numbers/samples/Mercury.options
+new file mode 100644
+index 0000000..ddd1c3e
+--- /dev/null
++++ b/extras/complex_numbers/samples/Mercury.options
+@@ -0,0 +1,2 @@
++MAIN_TARGET=fft
++MCFLAGS += --ml complex_numbers
+diff --git a/extras/complex_numbers/tests/Mercury.options b/extras/complex_numbers/tests/Mercury.options
+new file mode 100644
+index 0000000..2da053a
+--- /dev/null
++++ b/extras/complex_numbers/tests/Mercury.options
+@@ -0,0 +1,2 @@
++MAIN_TARGET=complex_test
++MCFLAGS += --ml complex_numbers
+diff --git a/extras/curs/Mercury.options b/extras/curs/Mercury.options
+new file mode 100644
+index 0000000..2c7b501
+--- /dev/null
++++ b/extras/curs/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=libcurs
+diff --git a/extras/curs/samples/Mercury.options b/extras/curs/samples/Mercury.options
+new file mode 100644
+index 0000000..7372c0c
+--- /dev/null
++++ b/extras/curs/samples/Mercury.options
+@@ -0,0 +1,2 @@
++MCFLAGS += -lcurs -lncurses -lpanel
++MAIN_TARGET=demo frogger nibbles
+diff --git a/extras/curses/Mercury.options b/extras/curses/Mercury.options
+new file mode 100644
+index 0000000..ca6a7b6
+--- /dev/null
++++ b/extras/curses/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=libmcurses
+diff --git a/extras/curses/sample/Mercury.options b/extras/curses/sample/Mercury.options
+new file mode 100644
+index 0000000..c438e96
+--- /dev/null
++++ b/extras/curses/sample/Mercury.options
+@@ -0,0 +1,3 @@
++MAIN_TARGET = smalltest
++MCFLAGS = --ml mcurses
++MCFLAGS += -lncurses
+diff --git a/extras/dynamic_linking/Mercury.options b/extras/dynamic_linking/Mercury.options
+new file mode 100644
+index 0000000..c7107c1
+--- /dev/null
++++ b/extras/dynamic_linking/Mercury.options
+@@ -0,0 +1,5 @@
++MAIN_TARGET=libdl libhello dl_test dl_test2
++MCFLAGS-dl_test = --ml dl -L/usr/lib64 -ldl
++MCFLAGS-dl_test2 = --ml dl -L/usr/lib64 -ldl
++MCFLAGS += --ld-flags -L /usr/lib64
++MCFLAGS += --linkage shared
+diff --git a/extras/dynamic_linking/Mmakefile b/extras/dynamic_linking/Mmakefile
+index 3f88729..d8025d3 100644
+--- a/extras/dynamic_linking/Mmakefile
++++ b/extras/dynamic_linking/Mmakefile
+@@ -4,14 +4,14 @@
+ # Public License - see the file COPYING.LIB in the Mercury distribution.
+ #-----------------------------------------------------------------------------#
+ 
+-INSTALL_PREFIX := $(INSTALL_PREFIX)/extras
++#INSTALL_PREFIX := $(INSTALL_PREFIX)/extras
+ 
+ # Use shared libraries, since they're needed for dynamic linking
+ MGNUCFLAGS = --pic-reg
+ MLFLAGS = --shared
+ 
+ # Link in the `-ldl' library (this may not be needed on some systems)
+-MLLIBS = -ldl
++MLLIBS = -L/usr/lib64 -ldl
+ 
+ # enable C-level debugging
+ CFLAGS = -g
+diff --git a/extras/error/Mercury.options b/extras/error/Mercury.options
+new file mode 100644
+index 0000000..eef0cb7
+--- /dev/null
++++ b/extras/error/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=error
+diff --git a/extras/fixed/Mercury.options b/extras/fixed/Mercury.options
+index 6f71a43..dfb7bb9 100644
+--- a/extras/fixed/Mercury.options
++++ b/extras/fixed/Mercury.options
+@@ -1 +1,2 @@
+ MCFLAGS-mercury_fixed = --no-warn-nothing-exported
++MAIN_TARGET=libmercury_fixed
+diff --git a/extras/gator/Mercury.options b/extras/gator/Mercury.options
+new file mode 100644
+index 0000000..c04eb5a
+--- /dev/null
++++ b/extras/gator/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=evolve
+diff --git a/extras/graphics/easyx/Mercury.options b/extras/graphics/easyx/Mercury.options
+new file mode 100644
+index 0000000..4c10a29
+--- /dev/null
++++ b/extras/graphics/easyx/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=libeasyx
+diff --git a/extras/graphics/mercury_allegro/Mercury.options b/extras/graphics/mercury_allegro/Mercury.options
+index 4066805..ea4c373 100644
+--- a/extras/graphics/mercury_allegro/Mercury.options
++++ b/extras/graphics/mercury_allegro/Mercury.options
+@@ -12,7 +12,7 @@ MCFLAGS += --ld-flags "`allegro-config --libs`"
+ #
+ # These lines are specific to this directory.
+ #
+-MAIN_TARGET = libmercury_allegro
++MAIN_TARGET = libmercury_allegro libmercury_allegrogl
+ MCFLAGS-allegro.util = --no-warn-nothing-exported
+ MCFLAGS-allegrogl = --allow-stubs
+ MCFLAGS-mercury_allegro = --no-warn-nothing-exported --no-warn-unused-imports
+diff --git a/extras/graphics/mercury_cairo/Cairo.options b/extras/graphics/mercury_cairo/Cairo.options
+index 6b89162..497a567 100644
+--- a/extras/graphics/mercury_cairo/Cairo.options
++++ b/extras/graphics/mercury_cairo/Cairo.options
+@@ -9,17 +9,16 @@
+ 
+ # Where are we going to install the Mercury cairo binding?
+ #
+-INSTALL_PREFIX=.
+ 
+ # What flags do we need to pass to the C compiler in order to compile
+ # against cairo?  
+ # Use "pkg-config --cflags cairo" to determine this and substitute the result
+ # as the value of CAIRO_CFLAGS.
+ #
+-CAIRO_CFLAGS="-I/opt/local/include/cairo -I/opt/local/include/pixman-1 -I/opt/local/include -I/opt/local/include/freetype2 -I/opt/local/include/libpng12"
++CAIRO_CFLAGS="`pkg-config --cflags cairo`"
+ 
+ # What flags do we need to pass to the linker in order to link against cairo?
+ # Use "pkg-config --libs cairo" here and substitute the result as the value
+ # of CAIRO_LDFLAGS.
+ #
+-CAIRO_LDFLAGS="-L/opt/local/lib -lcairo -lpixman-1 -lfontconfig -lexpat -liconv -lfreetype -lpng12 -lz -lXrender -lX11 -lxcb -lXau -lXdmcp"
++CAIRO_LDFLAGS="`pkg-config --libs cairo`"
+diff --git a/extras/graphics/mercury_cairo/Mercury.options b/extras/graphics/mercury_cairo/Mercury.options
+index 9eb74db..7b32258 100644
+--- a/extras/graphics/mercury_cairo/Mercury.options
++++ b/extras/graphics/mercury_cairo/Mercury.options
+@@ -8,7 +8,6 @@ MCFLAGS = \
+ 	--libgrades-exclude java 					\
+ 	--libgrades-exclude erlang 					\
+ 	--libgrades-exclude spf						\
+-	--install-prefix $(INSTALL_PREFIX)				\
+ 	--cflags $(CAIRO_CFLAGS)					\
+ 	--ld-flags $(CAIRO_LDFLAGS)
+ 
+diff --git a/extras/graphics/mercury_cairo/samples/Mercury.options b/extras/graphics/mercury_cairo/samples/Mercury.options
+index 34df88e..0b09097 100644
+--- a/extras/graphics/mercury_cairo/samples/Mercury.options
++++ b/extras/graphics/mercury_cairo/samples/Mercury.options
+@@ -10,4 +10,6 @@ MCFLAGS = \
+ 	--ml mercury_cairo			\
+ 	--mld $(MERCURY_CAIRO_DIR)		\
+ 	--cflags $(CAIRO_CFLAGS)		\
+-	--ld-flags $(CAIRO_LDFLAGS)
++	--ld-flags $(CAIRO_LDFLAGS)		\
++	-lcairo
++
+diff --git a/extras/graphics/mercury_glfw/GLFW.options b/extras/graphics/mercury_glfw/GLFW.options
+index 84e6ebe..ef48147 100644
+--- a/extras/graphics/mercury_glfw/GLFW.options
++++ b/extras/graphics/mercury_glfw/GLFW.options
+@@ -3,7 +3,6 @@
+ 
+ # Where are we going to install the Mercury glfw binding?
+ #
+-INSTALL_PREFIX=.
+ 
+ # What flags do we need to pass the Mercury compiler in order to compile
+ # against glfw?
+@@ -11,8 +10,8 @@ INSTALL_PREFIX=.
+ # For Linux -- if linking statically you may also need to include an
+ # assortment of X libraries.
+ #
+-#GLFW_MCFLAGS = -lglfw -lGLU -lGL
++GLFW_MCFLAGS = -lglfw -lGLU -lGL
+ 
+ # For Mac OS X and the Cocoa port of GLFW.
+ #
+-GLFW_MCFLAGS=-lglfw --framework Cocoa --framework OpenGL
++#GLFW_MCFLAGS=-lglfw --framework Cocoa --framework OpenGL
+diff --git a/extras/graphics/mercury_glfw/Mercury.options b/extras/graphics/mercury_glfw/Mercury.options
+index cf2723e..a093bd3 100644
+--- a/extras/graphics/mercury_glfw/Mercury.options
++++ b/extras/graphics/mercury_glfw/Mercury.options
+@@ -6,7 +6,7 @@ MCFLAGS = \
+ 	--libgrades-exclude java 					\
+ 	--libgrades-exclude erlang 					\
+ 	--libgrades-exclude csharp					\
+-	--install-prefix $(INSTALL_PREFIX)				\
+ 	$(GLFW_MCFLAGS)
+ 
+ MCFLAGS-mercury_glfw = --no-warn-nothing-exported --no-warn-interface-imports
++MAIN_TARGET=libmercury_glfw
+diff --git a/extras/graphics/mercury_glfw/samples/Mercury.options b/extras/graphics/mercury_glfw/samples/Mercury.options
+new file mode 100644
+index 0000000..a79f09b
+--- /dev/null
++++ b/extras/graphics/mercury_glfw/samples/Mercury.options
+@@ -0,0 +1,4 @@
++MCFLAGS = --ml mercury_opengl
++MCFLAGS += --ml mercury_glfw
++MCFLAGS += -lGLU
++MAIN_TARGET=gears listmodes triangle
+diff --git a/extras/graphics/mercury_glut/Mercury.options b/extras/graphics/mercury_glut/Mercury.options
+new file mode 100644
+index 0000000..e4cdf4f
+--- /dev/null
++++ b/extras/graphics/mercury_glut/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=libmercury_glut
+diff --git a/extras/graphics/mercury_opengl/Mercury.options b/extras/graphics/mercury_opengl/Mercury.options
+new file mode 100644
+index 0000000..e041666
+--- /dev/null
++++ b/extras/graphics/mercury_opengl/Mercury.options
+@@ -0,0 +1,3 @@
++MCFLAGS += --linkage shared
++MCFLAGS += --ld-flags -lGLU -lGL
++MAIN_TARGET=libmercury_opengl
+diff --git a/extras/graphics/mercury_tcltk/Mercury.options b/extras/graphics/mercury_tcltk/Mercury.options
+index 1b5ac6e..342744d 100644
+--- a/extras/graphics/mercury_tcltk/Mercury.options
++++ b/extras/graphics/mercury_tcltk/Mercury.options
+@@ -1 +1,3 @@
++MCFLAGS = --linkage shared --c-include-dir /usr/include/tcl8.5
+ MCFLAGS-mercury_tcltk=--no-warn-nothing-exported
++MAIN_TARGET = libmercury_tcltk
+diff --git a/extras/graphics/samples/calc/Mercury.options b/extras/graphics/samples/calc/Mercury.options
+new file mode 100644
+index 0000000..8c2291e
+--- /dev/null
++++ b/extras/graphics/samples/calc/Mercury.options
+@@ -0,0 +1,2 @@
++MCFLAGS = --ml mercury_tcltk --c-include-dir /usr/include/tcl8.5 -ltcl -ltk
++MAIN_TARGET=calc
+diff --git a/extras/graphics/samples/gears/Mercury.options b/extras/graphics/samples/gears/Mercury.options
+new file mode 100644
+index 0000000..6739232
+--- /dev/null
++++ b/extras/graphics/samples/gears/Mercury.options
+@@ -0,0 +1,6 @@
++MAIN_TARGET=gears
++MCFLAGS += --libgrades-exclude-component java 
++MCFLAGS += --libgrades-exclude-component csharp
++MCFLAGS += --libgrades-exclude-component erlang
++MCFLAGS += --ml mercury_opengl --ml mercury_glut
++MCFLAGS += -lGLU -lglut
+diff --git a/extras/graphics/samples/pent/Mercury.options b/extras/graphics/samples/pent/Mercury.options
+new file mode 100644
+index 0000000..090e8dd
+--- /dev/null
++++ b/extras/graphics/samples/pent/Mercury.options
+@@ -0,0 +1,7 @@
++TCLTK_VERSION = 8.5
++EXTRA_MLLIBS = -ltk$(TCLTK_VERSION) -ltcl$(TCLTK_VERSION) -lGLU -lGL\
++                -lX11 -lXmu -lXext -ldl -lSM -lXI -lXt
++
++MCFLAGS = --linkage shared --ml mercury_tcltk --ml mercury_opengl
++MLLIBS = $(EXTRA_MLLIBS)
++MAIN_TARGET = pent
+diff --git a/extras/lex/Mercury.options b/extras/lex/Mercury.options
+new file mode 100644
+index 0000000..9475898
+--- /dev/null
++++ b/extras/lex/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=liblex libregex
+diff --git a/extras/lex/samples/Mercury.options b/extras/lex/samples/Mercury.options
+new file mode 100644
+index 0000000..199f5bc
+--- /dev/null
++++ b/extras/lex/samples/Mercury.options
+@@ -0,0 +1,3 @@
++MAIN_TARGET=lex_demo regex_demo
++MCFLAGS-lex_demo = --ml lex
++MCFLAGS-regex_demo = --ml regex
+diff --git a/extras/lex/tests/Mercury.options b/extras/lex/tests/Mercury.options
+new file mode 100644
+index 0000000..ead9f24
+--- /dev/null
++++ b/extras/lex/tests/Mercury.options
+@@ -0,0 +1,2 @@
++MAIN_TARGET=test_regex
++MCFLAGS-test_regex = --ml regex
+diff --git a/extras/monte/Mercury.options b/extras/monte/Mercury.options
+new file mode 100644
+index 0000000..2368d14
+--- /dev/null
++++ b/extras/monte/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=libmonte
+diff --git a/extras/mopenssl/Mercury.options b/extras/mopenssl/Mercury.options
+new file mode 100644
+index 0000000..26b203c
+--- /dev/null
++++ b/extras/mopenssl/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=libmopenssl
+diff --git a/extras/net/Mercury.options b/extras/net/Mercury.options
+new file mode 100644
+index 0000000..249799f
+--- /dev/null
++++ b/extras/net/Mercury.options
+@@ -0,0 +1,2 @@
++MAIN_TARGET=libnet
++MCFLAGS += --no-ansi-c
+diff --git a/extras/posix/Mercury.options b/extras/posix/Mercury.options
+new file mode 100644
+index 0000000..941cd64
+--- /dev/null
++++ b/extras/posix/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=libposix libhello dl_test dl_test2
+diff --git a/extras/references/Mercury.options b/extras/references/Mercury.options
+index 7f4ac6d..9f2c9b3 100644
+--- a/extras/references/Mercury.options
++++ b/extras/references/Mercury.options
+@@ -10,3 +10,4 @@ MCFLAGS = --use-trail --trail-segments        \
+ 	  --extra-library-header c_reference.h
+ 
+ MCFLAGS-global = --no-warn-nothing-exported --no-warn-interface-imports
++MAIN_TARGET=libglobal
+diff --git a/extras/solver_types/library/Mercury.options b/extras/solver_types/library/Mercury.options
+new file mode 100644
+index 0000000..ac76aa0
+--- /dev/null
++++ b/extras/solver_types/library/Mercury.options
+@@ -0,0 +1 @@
++MAIN_TARGET=libany
+diff --git a/extras/trailed_update/Mercury.options b/extras/trailed_update/Mercury.options
+new file mode 100644
+index 0000000..675e3b1
+--- /dev/null
++++ b/extras/trailed_update/Mercury.options
+@@ -0,0 +1,3 @@
++MAIN_TARGET=libtrailed_update
++MCFLAGS += --use-trail
++MCFLAGS += --trail-segments
+diff --git a/extras/trailed_update/samples/Mercury.options b/extras/trailed_update/samples/Mercury.options
+new file mode 100644
+index 0000000..159243a
+--- /dev/null
++++ b/extras/trailed_update/samples/Mercury.options
+@@ -0,0 +1,3 @@
++include ../Mercury.options
++MAIN_TARGET=interpreter vqueens
++MCFLAGS = -ltrailed_update
+diff --git a/extras/windows_installer_generator/sample/Mercury.options b/extras/windows_installer_generator/sample/Mercury.options
+index 4c89c17..8e3e0f5 100644
+--- a/extras/windows_installer_generator/sample/Mercury.options
++++ b/extras/windows_installer_generator/sample/Mercury.options
+@@ -1 +1,2 @@
++MAIN_TARGET=gen_merc_wxs
+ MCFLAGS = -I.. -L.. -lwix

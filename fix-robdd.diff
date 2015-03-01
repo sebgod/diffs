@@ -1,0 +1,20 @@
+diff --git a/robdd/.gitignore b/robdd/.gitignore
+index 3ad9e78..8e89257 100644
+--- a/robdd/.gitignore
++++ b/robdd/.gitignore
+@@ -1,2 +1,3 @@
+ *.o
+ *.pic_o
++robdd_conf.h
+diff --git a/robdd/timing.c b/robdd/timing.c
+index b1475f9..3ab7440 100644
+--- a/robdd/timing.c
++++ b/robdd/timing.c
+@@ -26,6 +26,7 @@ millisec milli_time(void)
+ 
+ #include <sys/time.h>
+ #include <sys/resource.h>
++#include <stdio.h>
+ 
+ int getrusage(int, struct rusage *);
+ 

@@ -1,0 +1,21 @@
+diff --git a/README.Solaris b/README.Solaris
+index 1c3e409..5188ce2 100644
+--- a/README.Solaris
++++ b/README.Solaris
+@@ -5,3 +5,16 @@ with the version of Boehm GC shipped with that version of Mercury.
+ 
+ Also, note that `--linkage static' is not supported on Solaris.  Executables
+ produced using this option will cause a segmentation fault.
++
++BUILDING ON SOLARIS 11.x
++========================
++
++PREREQUISITES
++
++    pkg install developer/versioning/git
++    pkg install editor/vim
++    pkg install developer/gcc-45
++    pkg install developer/lexer/flex
++    pkg install developer/parser/bison
++    pkg install developer/build/automake-111
++    pkg install developer/build/autoconf

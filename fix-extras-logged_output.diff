@@ -1,0 +1,75 @@
+diff --git a/extras/logged_output/logged_output.m b/extras/logged_output/logged_output.m
+index aab2687..3814592 100644
+--- a/extras/logged_output/logged_output.m
++++ b/extras/logged_output/logged_output.m
+@@ -6,8 +6,8 @@
+ % Public License - see the file COPYING.LIB in the Mercury distribution.
+ %-----------------------------------------------------------------------------%
+ %
+-% module:   logged_output.m
+-% main author:  Peter Ross (petdr@miscrit.be)
++% File:   logged_output.m
++% Main author:  Peter Ross (petdr@miscrit.be)
+ %
+ % This provides an implementation of a stream which writes to stdout and
+ % logs to a file at the same time.
+@@ -34,14 +34,14 @@
+ logged_output.init(FileName, Result, !IO) :-
+     create_stream(FileName, Stream, !IO),
+     Result = ok(Stream).
+-    
++
+ %-----------------------------------------------------------------------------%
+ 
+ :- pred create_stream(string::in, io.output_stream::out, io::di, io::uo)
+     is det.
+ 
+ :- pragma foreign_proc("C",
+-    create_stream(FileName::in, IOStream::out, _IO0::di, _IO::uo), 
++    create_stream(FileName::in, IOStream::out, _IO0::di, _IO::uo),
+     [will_not_call_mercury, promise_pure],
+ "
+     MercuryFile *stream;
+@@ -73,7 +73,8 @@ logged_output.init(FileName, Result, !IO) :-
+ 
+ :- pragma foreign_decl("C", "
+ #ifndef MR_NEW_MERCURYFILE_STRUCT
+-  #error ""you need to use version of the mercury compiler configured with --enable-new-mercuryfile-struct""
++  #error ""you need to use version of the mercury compiler configured with \
++--enable-new-mercuryfile-struct""
+ #endif
+ 
+ #include <stdio.h>
+@@ -112,7 +113,7 @@ ME_logged_output_vfprintf(MR_StreamInfo *info, const char *format, va_list ap)
+     int rc;
+     va_list log_ap;
+     /*
+-    ** XXX we are not allowed to resue ap after a call to vfprintf
++    ** XXX we are not allowed to reuse ap after a call to vfprintf
+     ** (as this code originally did) -- doing so results in undefined
+     ** behaviour.  Making a copy of ap (here log_ap) in the following manner
+     ** is NOT portable.  (C99 provides the macro va_copy, which would allow
+diff --git a/extras/logged_output/main.m b/extras/logged_output/main.m
+index 361f1ff..c19b801 100644
+--- a/extras/logged_output/main.m
++++ b/extras/logged_output/main.m
+@@ -6,8 +6,8 @@
+ % Public License - see the file COPYING.LIB in the Mercury distribution.
+ %-----------------------------------------------------------------------------%
+ %
+-% module:   main.m
+-% main author:  Peter Ross (petdr@miscrit.be)
++% File:   main.m
++% Main author:  Peter Ross (petdr@miscrit.be)
+ %
+ % Use the logged_output stream.
+ %
+@@ -31,7 +31,7 @@ main(!IO) :-
+     logged_output.init("OUTPUT", Result, !IO),
+     ( if Result = ok(OutputStream) then
+         io.write_string(OutputStream, "Hi there.\n", !IO)
+-      else 
++      else
+         io.write_string("Unable to open OUTPUT\n", !IO)
+     ).
+ 

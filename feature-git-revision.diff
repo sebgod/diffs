@@ -1,0 +1,180 @@
+diff --git a/compiler/handle_options.m b/compiler/handle_options.m
+index ad3f396..3696cfa 100644
+--- a/compiler/handle_options.m
++++ b/compiler/handle_options.m
+@@ -2541,9 +2541,10 @@ usage_errors(Errors, !IO) :-
+     usage(!IO).
+ 
+ display_compiler_version(!IO) :-
+-    library.version(Version, Fullarch),
++    library.version(Version, Fullarch, Revision),
+     io.write_strings([
+         "Mercury Compiler, version ", Version, ", on ", Fullarch, "\n",
++        "Build from git revision ", Revision, "\n",
+         "Copyright (C) 1993-2013 The University of Melbourne\n",
+         "Copyright (C) 2014-2015 The Mercury team\n"
+     ], !IO).
+diff --git a/configure.ac b/configure.ac
+index 8183991..6b3f547 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -189,6 +189,16 @@ AC_CANONICAL_HOST
+ FULLARCH="$host"
+ AC_SUBST(FULLARCH)
+ AC_DEFINE_UNQUOTED(MR_FULLARCH, "$FULLARCH")
++AC_MSG_CHECKING([git revision])
++GIT_VERSION=$(git describe --tags 2>/dev/null)
++if test -z "$GIT_VERSION"; then
++  AC_MSG_RESULT([no])
++  GIT_VERSION="unknown"
++else
++  AC_MSG_RESULT([$GIT_VERSION])
++fi
++AC_SUBST(GIT_VESION)
++AC_DEFINE_UNQUOTED(MR_GIT_VERSION, "$GIT_VERSION")
+ . ./VERSION
+ AC_DEFINE_UNQUOTED(MR_VERSION, "$VERSION")
+ if test "$prefix" = "NONE"; then
+@@ -268,6 +278,7 @@ AC_SUBST(CYGPATHU)
+ PREFIX="`$CYGPATH $PREFIX`"
+ LIBDIR="`$CYGPATH $PREFIX/lib/mercury`"
+ NONSHARED_LIB_DIR=${MERCURY_NONSHARED_LIB_DIR=$PREFIX/lib/nonshared}
++AC_SUBST(GIT_VERSION)
+ AC_SUBST(VERSION)
+ AC_SUBST(PREFIX)
+ AC_SUBST(NONSHARED_LIB_DIR)
+diff --git a/java/runtime/Constants.java.in b/java/runtime/Constants.java.in
+index 2731d32..ba16d57 100644
+--- a/java/runtime/Constants.java.in
++++ b/java/runtime/Constants.java.in
+@@ -13,4 +13,5 @@ package jmercury.runtime;
+ public class Constants {
+ 	public static final java.lang.String MR_VERSION = "@VERSION@";
+ 	public static final java.lang.String MR_FULLARCH = "@FULLARCH@";
++	public static final java.lang.String MR_GIT_VERSION = "@GIT_VERSION@";
+ }
+diff --git a/library/erlang_conf.hrl.in b/library/erlang_conf.hrl.in
+index 4fa064d..6bc771c 100644
+--- a/library/erlang_conf.hrl.in
++++ b/library/erlang_conf.hrl.in
+@@ -19,6 +19,7 @@
+ 
+ -define(MR_VERSION, "@VERSION@").
+ -define(MR_FULLARCH, "@FULLARCH@").
++-define(MR_GIT_VERSION, "@GIT_VERSION@").
+ 
+ -endif.
+ 
+diff --git a/library/library.m b/library/library.m
+index 5b7fff9..fa9b80b 100644
+--- a/library/library.m
++++ b/library/library.m
+@@ -21,6 +21,10 @@
+     %
+ :- pred library.version(string::out, string::out) is det.
+ 
++    % version(VersionString, FullarchString, GitVersion)
++    %
++:- pred library.version(string::out, string::out, string::out) is det.
++
+ :- implementation.
+ 
+ % Everything below here is not intended to be part of the public interface,
+@@ -178,36 +182,44 @@
+ ").
+ 
+ % library.version must be implemented using pragma foreign_proc,
+-% so we can get at the MR_VERSION and MR_FULLARCH configuration
+-% parameters.  We can't just generate library.m from library.m.in
+-% at configuration time, because that would cause bootstrapping problems --
+-% we might not have a Mercury compiler around to compile library.m with.
++% so we can get at the MR_VERSION, MR_FULLARCH and MR_GIT_VERSION
++% configuration parameters.  We can't just generate library.m from
++% library.m.in at configuration time, because that would cause
++% bootstrapping problems -- we might not have a Mercury compiler
++% around to compile library.m with.
+ 
+ % We can't allow library.version to inlined into other modules.  The Erlang
+ % definition depends on erlang_conf.hrl, which will only be included by this
+ % module and not installed.
+ :- pragma no_inline(library.version/2).
++:- pragma no_inline(library.version/3).
++
++library.version(Version::out, Fullarch::out) :-
++    library.version(Version, Fullarch, _GitVersion).
+ 
+ :- pragma foreign_proc("C",
+-    library.version(Version::out, Fullarch::out),
++    library.version(Version::out, Fullarch::out, GitVersion::out),
+     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+ "
+     MR_ConstString version_string = MR_VERSION;
+     MR_ConstString fullarch_string = MR_FULLARCH;
++    MR_ConstString git_version_string = MR_GIT_VERSION;
+     /*
+     ** Cast away const needed here, because Mercury declares Version
+     ** with type MR_String rather than MR_ConstString.
+     */
+     Version = (MR_String) (MR_Word) version_string;
+     Fullarch = (MR_String) (MR_Word) fullarch_string;
++    GitVersion = (MR_String) (MR_Word) git_version_string;
+ ").
+ 
+ :- pragma foreign_proc("C#",
+-    library.version(Version::out, Fullarch::out),
++    library.version(Version::out, Fullarch::out, GitVersion::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+ "
+     Version = runtime.Constants.MR_VERSION;
+     Fullarch = runtime.Constants.MR_FULLARCH;
++    GitVersion = runtime.Constants.MR_GIT_VERSION;
+ ").
+ 
+ :- pragma foreign_proc("Java",
+@@ -216,14 +228,16 @@
+ "
+     Version = jmercury.runtime.Constants.MR_VERSION;
+     Fullarch = jmercury.runtime.Constants.MR_FULLARCH;
++    GitVersion = jmercury.runtime.Constants.MR_GIT_VERSION;
+ ").
+ 
+ :- pragma foreign_proc("Erlang",
+-    library.version(Version::out, Fullarch::out),
++    library.version(Version::out, Fullarch::out, GitVersion::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+ "
+     Version = << ?MR_VERSION >>,
+-    Fullarch = << ?MR_FULLARCH >>
++    Fullarch = << ?MR_FULLARCH >>,
++    GitVersion = << ?MR_GIT_VERSION >>
+ ").
+ 
+ %---------------------------------------------------------------------------%
+diff --git a/runtime/mercury_conf.h.in b/runtime/mercury_conf.h.in
+index d70d1e5..58cb466 100644
+--- a/runtime/mercury_conf.h.in
++++ b/runtime/mercury_conf.h.in
+@@ -497,6 +497,11 @@
+ #define MR_FULLARCH "unknown"
+ 
+ /*
++** Which git revision is used to build Mercury?
++*/
++#define MR_GIT_VERSION "unknown"
++
++/*
+ ** Should we build the Mercury libraries as Windows DLLs?
+ */
+ #undef MR_USE_DLLS
+diff --git a/runtime/mercury_dotnet.cs.in b/runtime/mercury_dotnet.cs.in
+index 938c523..49c143c 100644
+--- a/runtime/mercury_dotnet.cs.in
++++ b/runtime/mercury_dotnet.cs.in
+@@ -1010,6 +1010,7 @@ public class Constants
+ 
+     public static readonly string MR_VERSION    = "@VERSION@";
+     public static readonly string MR_FULLARCH   = "@FULLARCH@";
++    public static readonly string MR_GIT_VERSION= "@GIT_VERSION@";
+ }
+ 
+ /*---------------------------------------------------------------------------*/

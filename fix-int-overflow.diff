@@ -1,0 +1,32 @@
+diff --git a/library/array.m b/library/array.m
+index 4beecec..baf978d 100644
+--- a/library/array.m
++++ b/library/array.m
+@@ -2078,7 +2078,10 @@ array.bsearch_2(Array, Lo, Hi, El, Compare, Result) :-
+         ;
+             % Otherwise find the middle element of the range
+             % and check against that.
+-            Mid = (Lo + Hi) >> 1,   % `>> 1' is hand-optimized `div 2'.
++            % NOTE: Use Lo + (Hi - Lo) >> 1 instead of (Lo + Hi) >> 1 to
++            % prevent an integer overflow.
++
++            Mid = Lo + (Hi - Lo) >> 1,   % `>> 1' is hand-optimized `div 2'.
+             array.lookup(Array, Mid, XMid),
+             Compare(XMid, El, Comp),
+             (
+diff --git a/library/bt_array.m b/library/bt_array.m
+index 315b62e..3fec7a7 100644
+--- a/library/bt_array.m
++++ b/library/bt_array.m
+@@ -417,8 +417,10 @@ bsearch_2(A, Lo, Hi, El, Compare, I) :-
+         % little more expensive, and we know that we're always dividing
+         % by a power of 2. Until such time as we implement strength reduction,
+         % the >> 1 stays.
++        % NOTE: Use Lo + (Hi - Lo) >> 1 instead of (Lo + Hi) >> 1 to prevent
++        % an integer overlow.
+ 
+-        Mid = (Lo + Hi) >> 1,
++        Mid = Lo + (Hi - Lo) >> 1,
+         lookup(A, Mid, XMid),
+         Compare(XMid, El, Comp),
+         ( Comp = (<),

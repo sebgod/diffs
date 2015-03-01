@@ -1,0 +1,45 @@
+diff --git a/compiler/compile_target_code.m b/compiler/compile_target_code.m
+index a840130..8ff78ff 100644
+--- a/compiler/compile_target_code.m
++++ b/compiler/compile_target_code.m
+@@ -1707,15 +1707,19 @@ file_as_new_as(FileNameA, Rel, FileNameB, !IO) :-
+ 
+ compare_file_timestamps(FileNameA, FileNameB, MaybeCompare, !IO) :-
+     io.file_modification_time(FileNameA, TimeResultA, !IO),
+-    io.file_modification_time(FileNameB, TimeResultB, !IO),
+-    (
+-        TimeResultA = ok(TimeA),
+-        TimeResultB = ok(TimeB)
+-    ->
+-        compare(Compare, TimeA, TimeB),
+-        MaybeCompare = yes(Compare)
++    ( FileNameA = FileNameB ->
++        MaybeCompare = ( TimeResultA = ok(_) -> yes((=)) ; no )
+     ;
+-        MaybeCompare = no
++        io.file_modification_time(FileNameB, TimeResultB, !IO),
++        (
++            TimeResultA = ok(TimeA),
++            TimeResultB = ok(TimeB)
++        ->
++            compare(Compare, TimeA, TimeB),
++            MaybeCompare = yes(Compare)
++        ;
++            MaybeCompare = no
++        )
+     ).
+ 
+ %-----------------------------------------------------------------------------%
+@@ -3050,11 +3054,7 @@ create_java_archive(Globals, ErrorStream, JarFileName, ObjectList, Succeeded,
+         io.remove_file(TempFileName, _, !IO),
+ 
+         (
+-            Succeeded = yes,
+-            % Add an index, which is supposed to speed up class loading.
+-            IndexCmd = string.append_list([Jar, " i ", JarFileName]),
+-            invoke_system_command(Globals, ErrorStream, cmd_verbose_commands,
+-                IndexCmd, _, !IO)
++            Succeeded = yes
+         ;
+             Succeeded = no,
+             io.remove_file(JarFileName, _, !IO)

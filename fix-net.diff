@@ -1,0 +1,72 @@
+diff --git a/extras/net/Makefile b/extras/net/Makefile
+index f9d3f67..97774bd 100644
+--- a/extras/net/Makefile
++++ b/extras/net/Makefile
+@@ -7,8 +7,8 @@
+ 
+ MMC=mmc
+ MTAGS=mtags
+-MCFLAGS=-O3 --intermodule-optimization --use-grade-subdirs --grade hlc.gc
+-
++GRADE=asm_fast.gc
++MCFLAGS=-O3 --intermodule-optimization --use-grade-subdirs --grade $(GRADE)
+ 
+ MERCURY_FILES=$(wildcard *.m)
+ 
+diff --git a/extras/net/netdb.m b/extras/net/netdb.m
+index 8021d7e..c285838 100644
+--- a/extras/net/netdb.m
++++ b/extras/net/netdb.m
+@@ -82,7 +82,14 @@
+ 
+ :- pragma foreign_decl("C",
+ "
+-#include <netdb.h>
++#ifdef MR_WIN32
++  #ifndef WIN32_LEAN_AND_MEAN
++    #define WIN32_LEAN_AND_MEAN
++  #endif
++  #include <winsock2.h>
++#else
++  #include <netdb.h>
++#endif
+ ").
+ 
+ :- pragma foreign_decl("C", local,
+diff --git a/extras/net/sockets.m b/extras/net/sockets.m
+index 490b51a..fff75c3 100644
+--- a/extras/net/sockets.m
++++ b/extras/net/sockets.m
+@@ -112,7 +112,7 @@
+ :- pragma foreign_decl("C",
+ "
+ #ifdef MR_WIN32
+-  #include <winsock.h>
++  #include <winsock2.h>
+ #else
+   #include <errno.h>
+   #include <netdb.h>
+diff --git a/extras/net/types.m b/extras/net/types.m
+index 4077492..85ab5d3 100644
+--- a/extras/net/types.m
++++ b/extras/net/types.m
+@@ -94,8 +94,12 @@
+ 
+ :- pragma foreign_decl("C",
+ "
+-#include <netinet/in.h>
+-#include <arpa/inet.h>
++#ifdef MR_WIN32
++  #include <winsock2.h>
++#else
++  #include <netinet/in.h>
++  #include <arpa/inet.h>
++#endif
+ ").
+ 
+ :- pragma foreign_decl("C", local,
+@@ -251,3 +255,4 @@ ipv4_sockaddr(InAddr, Port) = Sockaddr :-
+ 
+ %-----------------------------------------------------------------------------%
+ %-----------------------------------------------------------------------------%
++
