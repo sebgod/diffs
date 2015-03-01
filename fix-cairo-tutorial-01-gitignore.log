@@ -1,0 +1,5 @@
+Correct the spelling of textextends in the gitignore file
+of the cairo extras package and ignore .png output files.
+
+extras/graphics/mercury_cairo/tutorial/.gitignore:
+    as above.

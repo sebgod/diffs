@@ -1,0 +1,17 @@
+diff --git a/extras/graphics/mercury_cairo/tutorial/.gitignore b/extras/graphics/mercury_cairo/tutorial/.gitignore
+index dd75662..0867fdd 100644
+--- a/extras/graphics/mercury_cairo/tutorial/.gitignore
++++ b/extras/graphics/mercury_cairo/tutorial/.gitignore
+@@ -1,3 +1,4 @@
++*.png
+ fill
+ mask
+ paint
+@@ -6,6 +7,6 @@ setsourcegradient
+ setsourcergba
+ showtext
+ stroke
+-testextents
++textextents
+ tips_ellipse
+ tips_letter

@@ -1,0 +1,13 @@
+Add an example of drawing the Sierpinski carpet fractal for various
+recursion depths.
+This demonstrates the use of recursion in combination with the cairo
+framework.
+
+extras/graphics/mercury_cairo/samples/.gitignore:
+    Ignore sierpinksi_carpet executable.
+
+extras/graphics/mercury_cairo/samples/sierpinski_carpet.m:
+    Implementation of the example.
+
+extras/graphics/mercury_cairo/samples/Makefile:
+    Add sierpinski_carpet to list of sample programs.

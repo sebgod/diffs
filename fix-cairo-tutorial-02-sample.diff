@@ -1,0 +1,100 @@
+diff --git a/extras/graphics/mercury_cairo/samples/.gitignore b/extras/graphics/mercury_cairo/samples/.gitignore
+index dabf3e9..6aea2ac 100644
+--- a/extras/graphics/mercury_cairo/samples/.gitignore
++++ b/extras/graphics/mercury_cairo/samples/.gitignore
+@@ -14,6 +14,7 @@ imagepattern
+ multi_segment_caps
+ set_line_cap
+ set_line_join
++sierpinski_carpet
+ text
+ text_align_center
+ text_extents
+diff --git a/extras/graphics/mercury_cairo/samples/Makefile b/extras/graphics/mercury_cairo/samples/Makefile
+index 06d6b4a..562e2d4 100644
+--- a/extras/graphics/mercury_cairo/samples/Makefile
++++ b/extras/graphics/mercury_cairo/samples/Makefile
+@@ -22,6 +22,7 @@ PROGS=\
+ 	multi_segment_caps	\
+ 	set_line_cap		\
+ 	set_line_join		\
++	sierpinski_carpet	\
+ 	text			\
+ 	text_align_center	\
+ 	text_extents
+diff --git a/extras/graphics/mercury_cairo/samples/sierpinski_carpet.m b/extras/graphics/mercury_cairo/samples/sierpinski_carpet.m
+new file mode 100644
+index 0000000..6063176
+--- /dev/null
++++ b/extras/graphics/mercury_cairo/samples/sierpinski_carpet.m
+@@ -0,0 +1,70 @@
++:- module sierpinski_carpet.
++:- interface.
++
++:- import_module io.
++
++:- pred main(io::di, io::uo) is det.
++
++%----------------------------------------------------------------------------%
++%----------------------------------------------------------------------------%
++
++:- implementation.
++
++:- import_module cairo.
++:- import_module cairo.image.
++:- import_module cairo.path.
++:- import_module cairo.png.
++:- import_module cairo.transformations.
++
++:- import_module int.
++:- import_module float.
++:- import_module list.
++:- import_module math.
++:- import_module maybe.
++:- import_module string.
++
++%----------------------------------------------------------------------------%
++
++:- pred sierpinski_carpet_loop(context(T)::in, int::in, int::in, int::in,
++    io::di, io::uo) is det.
++
++sierpinski_carpet_loop(Context, Size, X, Y, !IO) :-
++    ( Size > 2 ->
++        SizeN = Size / 3,
++        rectangle(Context, float(X + SizeN), float(Y + SizeN),
++            float(SizeN), float(SizeN), !IO),
++        fill(Context, !IO),
++        Sub = (pred(K::in, IO0::di, IO1::uo) is det :-
++            sierpinski_carpet_loop(Context, SizeN,
++                X + (K/3) * SizeN, Y + (K rem 3) * SizeN, IO0, IO1)),
++        foldl(Sub, delete_all(0..9, 4), !IO)
++    ;
++        true
++    ).
++
++main(!IO) :-
++    fold_up(sierpinski_carpet_png, 0, 6, !IO).
++
++:- pred sierpinski_carpet_png(int::in, io::di, io::uo) is det.
++
++sierpinski_carpet_png(Depth, !IO) :-
++    Size = pow(3, Depth),
++    SizeF = float(Size),
++    Scale = pow(3.0, 6) / SizeF,
++    ScaledSize = ceiling_to_int(Scale * SizeF),
++    cairo.image.create_surface(format_argb32, ScaledSize, ScaledSize,
++        Surface, !IO),
++    cairo.create_context(Surface, Context, !IO),
++
++    cairo.transformations.scale(Context, Scale, Scale, !IO),
++    cairo.set_line_width(Context, 1.0, !IO),
++    cairo.set_source_rgb(Context, 0.0, 0.0, 0.0, !IO),
++
++    sierpinski_carpet_loop(Context, Size, 0, 0, !IO),
++
++    PngFile = format("sierpinski_carpet_%d.png", [i(Depth)]),
++    write_surface_to_png(Surface, PngFile, !IO).
++
++%----------------------------------------------------------------------------%
++:- end_module sierpinski_carpet.
++%----------------------------------------------------------------------------%
