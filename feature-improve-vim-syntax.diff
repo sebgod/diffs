@@ -171,7 +171,7 @@ index 917e46c..2083d4c 100644
 +  call setpos('.', [1, w:lineL1PredEnd, w:lineL1PredEndCol])
 +endfu
 diff --git a/vim/syntax/mercury.vim b/vim/syntax/mercury.vim
-index bce7bb1..5ff154c 100644
+index bce7bb1..230b7d5 100644
 --- a/vim/syntax/mercury.vim
 +++ b/vim/syntax/mercury.vim
 @@ -1,7 +1,8 @@
@@ -192,7 +192,7 @@ index bce7bb1..5ff154c 100644
    " Mercury is case sensitive.
 -  "
  syn case match
-+set synmaxcol=90
++set synmaxcol=100
 +
 +if has("folding") && (!exists("mercury_no_folding") || !mercury_no_folding)
 +    " folding is only changed (if not forced) if the Vim default (manual) is active,
@@ -304,7 +304,7 @@ index bce7bb1..5ff154c 100644
  syn keyword mercuryKeyword      require_switch_arms_nondet
  syn keyword mercuryKeyword      require_switch_arms_semidet
  syn keyword mercuryKeyword      semidet
-@@ -110,63 +166,504 @@ syn keyword mercuryCInterface   foreign_import_module
+@@ -110,63 +166,578 @@ syn keyword mercuryCInterface   foreign_import_module
  syn keyword mercuryCInterface   foreign_proc
  syn keyword mercuryCInterface   foreign_type
  
@@ -337,13 +337,12 @@ index bce7bb1..5ff154c 100644
 +syn keyword mercuryForeignMod   terminates
  
 -syn keyword mercuryImpure       impure semipure
+-
+-syn keyword mercuryToDo         XXX TODO NOTE         
 +syn keyword mercuryPurity       impure
 +syn keyword mercuryPurity       promise_pure
 +syn keyword mercuryPurity       promise_semipure
 +syn keyword mercuryPurity       semipure
- 
--syn keyword mercuryToDo         XXX TODO NOTE         
-+syn keyword mercuryToDo         XXX TODO NOTE MISSING HACK HINT WARNING
  
  syn keyword mercuryLogical      fail false true
  syn keyword mercuryLogical      if then else
@@ -415,13 +414,13 @@ index bce7bb1..5ff154c 100644
 +syn match   mercuryFloat   /\v<([0-9]+\.[0-9]+([eE][-+]?[0-9]+)?)/
 +syn region  mercuryAtom    start=+'+ skip=+\\'+   end=+'+ contains=
 +      \ mercuryStringEsc,@mercuryFormatting,mercuryEscErr,@Spell
-+syn match   mercuryStringEsc    /""/ contained " must come before mercuryString
-+syn region  mercuryString  start=+"+ skip=/\v(\\x?\x+)@<!\\"|""/ end=+"+ keepend contains=
++syn region  mercuryString matchgroup=mercuryString
++      \ start=+"+ skip=/\v(\\x?\x+|\\)@<!\\"|""/ end=+"+ keepend contains=
 +      \ mercuryStringFmt,mercuryStringEsc,@mercuryFormatting,
 +      \ mercuryEscErr,mercuryStringEsc,@Spell
-+syn match   mercuryString       /""/  " matches the empty string (instead of escape)
 +syn match   mercuryStringFmt    /%[-+# *.0-9]*[dioxXucsfeEgGp]/       contained
 +  " mercury*Esc are common to "mercuryAtom" and "mercuryString"
++syn match   mercuryEscErr       /\v\\([ \t]+$)@=/ contained " matching escaped newline
 +syn match   mercuryEscErr       /\v\\[uUx]/ contained " must come before \\u\x{4}
 +syn match   mercuryEscErr       /\v\\0/     contained " \0 literals are not allowed
 +syn match   mercuryStringEsc    /\\$/       contained " matching escaped newline
@@ -430,8 +429,10 @@ index bce7bb1..5ff154c 100644
 +syn match   mercuryStringEsc    /\v\\U00(10|0\x)\x{4}/ contained
 +syn match   mercuryStringEsc    /\v\\x\x+\\/           contained
 +syn match   mercuryStringEsc    /\v\\[0-7][0-7]+\\/    contained
++syn match   mercuryStringEsc    /\v""/ contained
 +  " matching unbalanced brackets (before "mercuryTerm", "mercuryBlock", ...)
-+syn match mercuryErrInAny       "(\|\[{\|}\|\]\|)"     contained
++  " TODO: Verify if contained is required
++syn match mercuryErrInAny       "(\|\[{\|}\|\]\|)"  " contained
 +syn match mercuryTerminator     "\v\.(\s+|$)@=" " after mercuryErrInAny
 +syn match mercuryOperator       "\.\."          " after mercuryTerminator
 +
@@ -489,15 +490,22 @@ index bce7bb1..5ff154c 100644
 +syn cluster mercuryComments contains=mercuryComment,mercuryCComment
 +  " The clusters contain all valid Mercury code. The nesting is done to allow
 +  " for matching of parenthesis, DCG terms and lists
-+syn cluster mercuryTerms     contains=mercuryBlock,mercuryList,mercuryString,mercuryDelimiter,
-+      \ mercuryAtom,mercuryNumCode,mercuryFloat,@mercuryComments,mercuryKeyword,mercuryImplKeyword,
++syn cluster mercuryTerms     contains=mercuryBlock,mercuryList,mercuryString,
++      \ mercuryDelimiter,mercuryAtom,mercuryNumCode,mercuryFloat,
++      \ @mercuryComments,mercuryKeyword,mercuryImplKeyword,
 +      \ @mercuryFormatting,mercuryErrInAny,mercuryBool,mercuryOperator,
-+      \ mercurySingleton,mercuryImplication,mercuryInlined,mercuryLogical,mercuryPurity
-+syn region  mercuryList      matchgroup=mercuryBracket   start='\[' end=']' transparent fold  contains=@mercuryTerms
-+syn region  mercuryBlock     matchgroup=mercuryBracket   start='(' end=')'  transparent fold  contains=@mercuryTerms,mercuryDCGAction
-+syn region  mercuryDCGAction matchgroup=mercuryBracket   start='{' end='}'  transparent fold  contains=@mercuryTerms
-+syn region  mercuryForeignModList matchgroup=mercuryBracket   start='\[' end=']' transparent fold  contained contains=
-+      \ mercuryForeignMod,mercuryDelimiter,@mercuryComments,@mercuryFormatting,
++      \ mercurySingleton,mercuryImplication,mercuryInlined,mercuryLogical,
++      \ mercuryPurity,mercuryDCGOrTuple
++
++syn region  mercuryList       matchgroup=mercuryBracket   start='\[' end=']'
++      \ transparent fold  contains=@mercuryTerms
++syn region  mercuryBlock      matchgroup=mercuryBracket   start='(' end=')'
++      \ transparent fold  contains=@mercuryTerms
++syn region  mercuryDCGOrTuple matchgroup=mercuryBracket   start='{' end='}'
++      \ transparent fold  contains=@mercuryTerms
++syn region  mercuryForeignModList matchgroup=mercuryBracket start='\[' end=']'
++      \ transparent fold  contained contains=mercuryForeignMod,
++      \ mercuryDelimiter,@mercuryComments,@mercuryFormatting,
 +      \ mercuryString,mercuryOperator,mercuryBlock
 +
 +if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
@@ -508,17 +516,23 @@ index bce7bb1..5ff154c 100644
 +        \ @mercuryFormatting,mercuryForeignId
 +
 +  syn region  mercuryForeignCBlock       matchgroup=mercuryBracket start=/\v\(("C"|c)/rs=s+1 end=')'
-+        \ transparent fold contained contains=@mercuryForeign,mercuryCCode,mercuryBlock
++        \ transparent fold contained contains=@mercuryForeign,
++        \ mercuryCCode,mercuryBlock
 +  syn region  mercuryForeignCSharpBlock  matchgroup=mercuryBracket start=/\v\(("C#"|csharp)/rs=s+1 end=')'
-+        \ transparent fold contained contains=@mercuryForeign,mercuryCSharpCode,mercuryBlock
++        \ transparent fold contained contains=@mercuryForeign,
++        \ mercuryCSharpCode,mercuryBlock
 +  syn region  mercuryForeignJavaBlock    matchgroup=mercuryBracket start=/\v\(("Java"|java)/rs=s+1 end=')'
-+        \ transparent fold contained contains=@mercuryForeign,mercuryJavaCode,mercuryBlock
++        \ transparent fold contained contains=@mercuryForeign,
++        \ mercuryJavaCode,mercuryBlock
 +  syn region  mercuryForeignILBlock      matchgroup=mercuryBracket start=/\v\(("IL"|il)/rs=s+1 end=')'
-+        \ transparent fold contained contains=@mercuryForeign,mercuryILCode,mercuryBlock
++        \ transparent fold contained contains=@mercuryForeign,
++        \ mercuryILCode,mercuryBlock
 +  syn region  mercuryForeignErlangBlock  matchgroup=mercuryBracket start=/\v\(("Erlang"|erlang)/rs=s+1 end=')'
-+        \ transparent fold contained contains=@mercuryForeign,mercuryErlangCode,mercuryBlock
-+  syn cluster mercuryForeignBlock contains=mercuryForeignCBlock,mercuryForeignCSharpBlock,
-+        \ mercuryForeignJavaBlock,mercuryForeignErlangBlock,mercuryForeignILBlock
++        \ transparent fold contained contains=@mercuryForeign,
++        \ mercuryErlangCode,mercuryBlock
++  syn cluster mercuryForeignBlock contains=mercuryForeignCBlock,
++        \ mercuryForeignCSharpBlock,mercuryForeignJavaBlock,
++        \ mercuryForeignErlangBlock,mercuryForeignILBlock
 +  syn match   mercuryPragmaForeign /\v^\s*:-\s+pragma\s+foreign_(code|proc|decl|type|export(_enum)?|enum|import_module)/
 +        \ transparent nextgroup=@mercuryForeignBlock
 +
@@ -545,9 +559,10 @@ index bce7bb1..5ff154c 100644
 +
 +    " C-Language formatting with Mercury types MR_*
 +  syn keyword mercuryCType contained const size_t pid_t offset_t union
-+  syn keyword mercuryCType contained MR_bool MR_Word MR_Integer MR_Unsigned
++  syn keyword mercuryCType contained MR_bool MR_Bool
++  syn keyword mercuryCType contained MR_Word MR_Integer MR_Unsigned
 +  syn keyword mercuryCType contained MR_ArrayPtr MR_Float MR_file MercuryFile[Ptr]
-+  syn keyword mercuryCType contained MR_String MR_ConstString
++  syn keyword mercuryCType contained MR_String MR_ConstString MR_Char
 +  syn match mercuryCType "\v<MR_((Pseudo)?TypeInfo|Construct_Info|TypeCtor(Desc|Info)|AllocSiteInfoPtr)|MercuryLock>" contained
 +  syn match mercuryCType "\v<(MR_)?[u]?int(_least|_fast)?(8|16|32|64)_t>" contained
 +  syn match mercuryForeignIface "\v<(MR_)?[U]?INT(_LEAST|_FAST)?(8|16|32|64)_(TYPE|LENGTH_MODIFIER)>" contained
@@ -560,7 +575,9 @@ index bce7bb1..5ff154c 100644
 +  syn keyword mercuryCConst contained INT_MAX UINT_MAX INT_MIN
 +  syn keyword mercuryCConst contained SHRT_MAX USHRT_MAX SHRT_MIN
 +  syn keyword mercuryCBool  contained MR_TRUE MR_FALSE
-+  syn match mercuryForeignIface "\v<MR_[A-Z]+_LENGTH_MODIFIER>" contained
++  syn keyword mercuryCBool  contained MR_YES MR_NO
++  syn match mercuryForeignIface contained "\v<MR_[A-Z]+_LENGTH_MODIFIER>"
++  syn match mercuryForeignIface contained "\v<MR_THREAD_SAFE>"
 +  syn match mercuryCFunc "\v<MR_(list_(empty|head|tail)|incr_hp((_atomic)?|((_type)?_msg))|assert|fatal_error|make_aligned_string)>" contained
 +  syn match mercuryCPreProc "#\(if\(n\?def\)\?\|else\|elif\|endif\|define\|include\|error\|warning\|line\)" contained
 +  syn match mercuryCPreProc    "\v(\\){1,2}$" contained
@@ -571,8 +588,9 @@ index bce7bb1..5ff154c 100644
 +  syn cluster mercuryC add=mercuryCPreProc,mercuryCString,mercuryCBool,mercuryCConst,mercuryCFunc
 +
 +    " C++-Style for Java and C# (bool, // comments, exception handling etc)
-+  syn keyword mercuryCppLikeKeyword contained class new delete try catch finally instanceof abstract
-+        \ throw[s] extends this super base synchronize[d] override foreach in using import ref
++  syn keyword mercuryCppLikeKeyword contained class new delete try catch finally
++        \ instanceof abstract throw[s] extends this super base synchronize[d]
++        \ override foreach in using import ref implements
 +  syn keyword mercuryCppLikeBool contained true false
 +  syn keyword mercuryCppLikeConst contained null[ptr]
 +  syn match mercuryCppLikeOperator "@" contained
@@ -602,7 +620,7 @@ index bce7bb1..5ff154c 100644
 +        \ contains=@mercuryCSharp
 +
 +    " Declaration for Java
-+  syn match mercuryJavaType "\v([a-z_0-9]+\.(\_\s+)?)+[A-Z][A-Z_a-z0-9]+" contained
++  syn match mercuryJavaType "\v<([a-z_][A-Za-z0-9_]*\.(\_\s+)?)+[A-Z][A-Z_a-z0-9]+>" contained
 +  syn match mercuryJavaType "\v<(String(Builder)?|Override|Object|Integer|Byte)>" contained
 +  syn match mercuryJavaType "\v<(Short|Float|Double|Void|Boolean|Character|System|Runtime|boolean)>" contained
 +  syn match mercuryJavaType "\v<bool>\."he=e-1 contained nextgroup=mercuryJavaBool
@@ -662,15 +680,36 @@ index bce7bb1..5ff154c 100644
 +endif
 +
 +  " Comment handling
-+syn match mercuryCommentInfo contained "\v ((Main |Original )?[Aa]uthor[s]?|File|Created on|Date|Source):"
-+syn match mercuryCommentInfo " Stability: " contained nextgroup=@mercuryStability
++syn match mercuryCommentFirstSpace contained "\v[%*]@<=[ ]{1}([\t ]*[\n])@!"
++      \ nextgroup=@mercuryCommentSpecialLines
++syn match mercuryCommentInfo contained "\v(Main |Original )?[Aa]uthor[s]?[^\n:]*[:]@="
++      \ nextgroup=mercuryCommentOp
++syn match mercuryCommentInfo contained "\v(File|Created on|Date|Source|Stability)[:]@="
++      \ nextgroup=mercuryCommentOp
++
++syn keyword mercuryToDo contained XXX TODO NOTE[_TO_IMPLEMENTORS] MISSING HACK
++      \ nextgroup=mercuryCommentOp
++syn keyword mercuryToDo contained HINT WARNING IMPORTANT
++      \ nextgroup=mercuryCommentOp
++
++  " End of special file markers
++syn match mercuryCommentOp contained ": " nextgroup=@mercuryStability
++
 +syn match mercuryCopyrightYear "\v (19|20)[0-9][0-9]([, -]+(19|20)[0-9][0-9])*" contained
 +if has("conceal") && (!exists("mercury_no_conceal") || !mercury_no_conceal)
 +  syn match mercuryCopyrightSymbol "\v\([cC]\)|©" conceal cchar=© contained nextgroup=mercuryCopyrightYear
 +else
 +  syn match mercuryCopyrightSymbol "\v\([cC]\)|©" contained nextgroup=mercuryCopyrightYear
 +endif
-+syn match mercuryCommentInfo "\v Copyright " contained nextgroup=mercuryCopyrightSymbol
++syn match mercuryCommentInfo "\vCopyright " contained nextgroup=mercuryCopyrightSymbol
++
++  " Matching Vim modeline
++syn match mercuryModelineParam contained "\v<(sw|ts|tw|wm|ff|ft|et|expandtab)>"
++syn match mercuryModelineValue contained "\v<(mercury|unix)>"
++syn region mercuryModeline contained matchgroup=mercuryCommentToken start="vim:" end="\v[\n]@="
++      \ oneline contains=mercuryModelineParam,mercuryModelineValue,mercuryNumCode,
++      \ mercuryOperator
++
 +  " Highlights the output of the Mercury error command (in extras)
 +syn match mercuryCommentErr "\v(\* )@<=###[ ]@=" contained
 +
@@ -680,24 +719,58 @@ index bce7bb1..5ff154c 100644
 +syn keyword mercuryStabilityHigh   contained high
 +syn match mercuryStabilityTo "\v-| to " contained nextgroup=@mercuryStability
 +
++  " Matches file names, email, file and http addresses (on a best effort basis).
++  " This avoids spell checking on those,
++  " and could also be used for plug-in development to open a browser, etc.
++syn match mercuryCommentUri contained "\v<[-0-9a-zA-Z.+_]+[@][-0-9a-zA-Z.+_]+\.[a-zA-Z]{2,10}>"
++syn match mercuryCommentUri contained "\v<(http[s]?|file)://[^ ><]+>"
++syn match mercuryCommentUri contained "\v<([a-z][a-z0-9._]+[/])*[a-z][a-z0-9._]+[.]m>"
++
 +syn cluster mercuryStability contains=mercuryStabilityLow,mercuryStabilityMedium,mercuryStabilityHigh
-+syn cluster mercuryCommentDirectives contains=@Spell,mercuryToDo,mercuryCommentInfo
++syn cluster mercuryCommentSpecialLines contains=mercuryCommentInfo,mercuryModeLine
++syn cluster mercuryCommentDirectives contains=@Spell,mercuryToDo,mercuryCommentFirstSpace
++syn cluster mercuryCommentDirectives add=mercuryCommentUri
 +
 +if exists("mercury_highlight_comment_special") && mercury_highlight_comment_special
 +  syn match mercuryCommentSlash "/" contained nextgroup=mercuryCommentArity
 +  syn match mercuryCommentArity "\v\d+" contained
-+  syn match mercuryCommentSingleQuote /\v'[a-z._]+'/ contained nextgroup=mercuryCommentSlash
++  syn match mercuryCommentSingleQuote /\v'[A-Za-z._0-9()]+'/ contained nextgroup=mercuryCommentSlash
 +
-+  syn region mercuryCommentTexSingleQuote start="\v`[^`]@=" end="\v'" oneline
-+        \ contained nextgroup=mercuryCommentSlash
-+  syn region mercuryCommentTexDblQuote start="``" end="''" oneline contained contains=@Spell
++    " Header means the line describing the Arguments of a predicate or function,
++    " terminated with a colon. This also stops spell check on the argument names,
++    " which Vim is not good at dealing with.
++  syn region mercuryCommentHeader contained matchgroup=mercuryString
++        \ start='\v[a-z][A-Za-z._0-9]*([(]([)]|[\[][a-z"])@!|\s*[=])@='
++        \ matchgroup=NONE keepend
++        \ end="\v([.])|([:][-]@!)|(<[a-z]@=)|[)%][ \t]*[\n]@="
++        \ contains=mercuryOperator,mercuryCommentHeaderBlock,
++        \ mercuryCommentHeaderList,mercuryCommentHeaderTuple,
++        \ mercuryErrInAny,mercuryCommentHeaderCont,@mercuryFormatting
++  syn match mercuryCommentHeaderCont contained "\v^[ \t]*[%]"
++  syn region mercuryCommentHeaderList contained matchgroup=mercuryBracket
++        \ start='\[' end=']' transparent fold
++        \ contains=@mercuryTerms,mercuryCommentHeaderCont
++  syn region mercuryCommentHeaderBlock contained matchgroup=mercuryBracket
++        \ start='(' end=')' transparent fold
++        \ contains=@mercuryTerms,mercuryCommentHeaderCont
++  syn region  mercuryCommentHeaderTuple contained matchgroup=mercuryBracket
++        \ start='{' end='}' transparent fold
++        \ contains=@mercuryTerms,mercuryCommentHeaderCont
++  syn region mercuryCommentTexSingleQuote contained oneline
++        \ start="\v`[^`]@=" end="\v'" nextgroup=mercuryCommentSlash
++  syn region mercuryCommentTexDblQuote start="``" end="''" oneline contained
++        \ contains=@Spell
 +
-+  syn cluster mercuryCommentDirectives add=mercuryCommentSingleQuote,@mercuryCommentTex
-+  syn cluster mercuryCommentTex contains=mercuryCommentTexDblQuote,mercuryCommentTexSingleQuote
++  syn cluster mercuryCommentSpecialLines add=mercuryCommentHeader
++  syn cluster mercuryCommentDirectives add=mercuryCommentSingleQuote
++  syn cluster mercuryCommentDirectives add=@mercuryCommentTex
++  syn cluster mercuryCommentTex contains=mercuryCommentTexDblQuote
++  syn cluster mercuryCommentTex contains=mercuryCommentTexSingleQuote
 +endif
 +
 +if exists("mercury_highlight_full_comment") && mercury_highlight_full_comment
 +  hi def link mercuryComment        Comment
++  hi def link mercuryCommentUri     Underlined
 +  hi def link mercuryCComment       Comment
 +  hi def link mercuryCppLikeComment Comment
 +
@@ -713,10 +786,11 @@ index bce7bb1..5ff154c 100644
 +    " instead but does not support @Spell as a side-effect
 +  hi def link mercuryComment        Normal
 +  hi def link mercuryCComment       Normal
++  hi def mercuryCommentUri     term=underline cterm=underline gui=underline
 +  hi def link mercuryCppLikeComment Normal
 +  hi def link mercuryLeadTrailStar  Comment
 +
-+  syn match mercuryLeadTrailStar contained "^\v[ \t]*[*]+|[*]+$"
++  syn match mercuryLeadTrailStar contained "^\v[ \t]*[*]+|[*]+$" nextgroup=mercuryCommentFirstSpace
 +  syn region mercuryComment matchgroup=mercuryCommentToken start=/%[-=%*_]*/ end=/\v[\n]@=/ oneline
 +        \ contains=@mercuryCommentDirectives,@mercuryFormatting
 +  syn region mercuryCComment matchgroup=mercuryCommentToken start="\v/\*" end="\v[*]+/" keepend fold
@@ -726,13 +800,9 @@ index bce7bb1..5ff154c 100644
 +        \ contained contains=@mercuryCommentDirectives,@mercuryFormatting
 +endif
 +
-+  " Matching Vim modeline
-+syn match mercuryModelineParam "\v(sw|ts|tw|wm|ff|ft)\=" contained
-+syn match mercuryModelineParam "\vet|expandtab" contained
-+syn match mercuryModelineValue "\<\(mercury\|unix\)\>" contained
-+syn region mercuryModeline matchgroup=mercuryCommentToken  start="% vim:" end=+$+
-+      \ oneline contains=mercuryModelineParam,mercuryModelineValue,mercuryNumCode
-+syn region mercuryShebang matchgroup=mercuryCommentToken  start="^\%1l#!/" end=/\v.+$/ oneline
++  " Matching the Unix shebang
++syn region mercuryShebang matchgroup=mercuryCommentToken  start="^\%1l#!/" end=/\v.+$/
++      \ oneline
 +
 +  " Matching over-long lines
  if !exists("mercury_no_highlight_overlong") || !mercury_no_highlight_overlong
@@ -780,10 +850,12 @@ index bce7bb1..5ff154c 100644
 +if exists("mercury_highlight_comment_special") && mercury_highlight_comment_special
 +  hi def link mercuryCommentSlash   Operator
 +  hi def link mercuryCommentArity   Number
-+  hi def link mercuryCommentSingleQuote  Special
++  hi def link mercuryCommentHeaderCont Comment
++  hi def link mercuryCommentSingleQuote  String
 +  hi def link mercuryCommentTexDblQuote  String
-+  hi def link mercuryCommentTexSingleQuote  Special
++  hi def link mercuryCommentTexSingleQuote  String
 +endif
++hi def link mercuryCommentOp        Operator
 +hi def link mercuryCopyrightSymbol  Operator
 +hi def link mercuryCopyrightYear    Constant
 +hi def link mercuryCInterface       mercuryPragma
@@ -844,9 +916,12 @@ index bce7bb1..5ff154c 100644
 +hi def link mercuryErrInAny         ErrorMsg
 +hi def link mercuryOperator         Operator
 +hi def link mercuryInlined          Operator
-+hi mercuryStabilityLow     ctermfg=red        guifg=red
-+hi mercuryStabilityMedium  ctermfg=darkyellow guifg=darkyellow
-+hi mercuryStabilityHigh    ctermfg=darkgreen  guifg=darkgreen gui=bold
++hi def mercuryStabilityLow     ctermfg=red        guifg=red        term=bold
++      \ cterm=bold gui=bold
++hi def mercuryStabilityMedium  ctermfg=darkyellow guifg=darkyellow term=bold
++      \ cterm=bold gui=bold
++hi def mercuryStabilityHigh    ctermfg=darkgreen  guifg=darkgreen  term=bold
++      \ cterm=bold gui=bold
 +hi def link mercuryStabilityTo      Delimiter
 +hi def link mercuryString           String
 +hi def link mercuryStringEsc        Identifier
