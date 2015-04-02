@@ -1,0 +1,14 @@
+Add --output-csharp-compiler option
+
+In order to support more complicated linking scenarios linking .NET code with
+Mercury in the C# grade, add the --output-csharp-compiler option in the same
+way --output-c-compiler-type and --output-cc work.
+This way makefiles can use something like:
+CS_COMPILER := $(shell $(MMC) --output-csharp-compiler)
+
+compiler/mercury_compile.m:
+    Output the global csharp_compiler if the boolean option
+    output_csharp_compiler is set.
+
+compiler/options.m:
+    Define the output_csharp_compiler option and provide the help text.
