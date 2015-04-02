@@ -1,0 +1,18 @@
+Remove jar index creation for library jars
+
+In compiler/compile_target_code.m it is stated that creating a jar index with
+"jar -i <jarfile>" speeds up class loading. This is only true for
+executable jars with jars defined in their manifest file classpath.
+For jars created by the Mercury compiler (so far only libraries), there
+will always be only one entry (the jar file itself).
+Under Linux using Java 7+ and installing Mercury using "sudo make install",
+e.g. for installing under /usr/local, invoking "jar -i <jarfile>" will create
+a temporary file with root owner and chmod 0600, thus making it inaccessible
+from an unprivileged mmc process.
+
+compiler/compile_target_code.m:
+    Modify create_java_archive to not create a jar index.
+    Also modify compare_file_timestamps/5 to avoid a race condition
+    (file access violations) which occurs under Windows when comparing
+    a file with itself. Here a file always compares compares 'yes(=)' if
+    A and B are identical.
