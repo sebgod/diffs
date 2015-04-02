@@ -1,0 +1,23 @@
+Record the git revision the Mercury compiler was compiled with
+
+It can be useful to check the git revision from which the Mercury compiler was 
+compiled from.
+
+compiler/handle_options.m:
+    In display_compiler_version/2 write out the git revision the compiler was
+    compiled from.
+
+configure.ac:
+    define GIT_REVISION macro and collect git describe output,
+    also define MR_GIT_REVISION in lieu of MR_VERSION.
+
+library/library.m:
+    Move version/2 to version/3 and also output the git revision of the
+    compiler. Make version/2 a wrapper for version/3 by ignoring the
+    git revision output.
+
+java/runtime/Constants.java.in:
+library/erlang_conf.hrl.in:
+runtime/mercury_conf.h.in:
+runtime/mercury_dotnet.cs.in:
+    Add the grade specific MR_GIT_REVISION constant.
