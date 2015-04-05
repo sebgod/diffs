@@ -22,7 +22,7 @@ index f60b5a6..035a325 100644
          globals.lookup_string_option(Globals, csharp_compiler_type, CSC_Type),
          io.stdout_stream(StdOut, !IO),
 diff --git a/compiler/options.m b/compiler/options.m
-index f835979..6b661ec 100644
+index 495aa0c..14b495b 100644
 --- a/compiler/options.m
 +++ b/compiler/options.m
 @@ -209,6 +209,7 @@
@@ -59,3 +59,28 @@ index f835979..6b661ec 100644
          "--output-csharp-compiler-type",
          "\tPrint the C# compiler type to the standard output.",
          "--output-library-link-flags",
+diff --git a/doc/user_guide.texi b/doc/user_guide.texi
+index 2551c39..8cfcdee 100644
+--- a/doc/user_guide.texi
++++ b/doc/user_guide.texi
+@@ -7061,7 +7061,7 @@ be installed should be built to the standard output.
+ @sp 1
+ @item --output-cc
+ @findex --output-cc
+-Print the command used to invoke C compiler to the standard output.
++Print the command used to invoke the C compiler to the standard output.
+ 
+ @sp 1
+ @item --output-cc-type
+@@ -7077,6 +7077,11 @@ Print the flags with which the C compiler will be invoked
+ to the standard output.
+ 
+ @sp 1
++@item --output-csharp-compiler
++@findex --output-csharp-compiler
++Print the command used to invoke the C# compiler to the standard output.
++
++@sp 1
+ @item --output-csharp-compiler-type
+ @findex --output-csharp-compiler-type
+ Print the C# compiler type to the standard output.
