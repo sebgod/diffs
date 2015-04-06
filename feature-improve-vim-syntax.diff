@@ -1,37 +1,268 @@
+diff --git a/vim/.gitignore b/vim/.gitignore
+new file mode 100644
+index 0000000..8c2ad01
+--- /dev/null
++++ b/vim/.gitignore
+@@ -0,0 +1 @@
++mercury.vba
+diff --git a/vim/Makefile b/vim/Makefile
+new file mode 100644
+index 0000000..0f2888b
+--- /dev/null
++++ b/vim/Makefile
+@@ -0,0 +1,27 @@
++FILES := ftdetect/mercury.vim
++FILES += ftplugin/mercury.vim
++FILES += ftplugin/mercuryhdr.sh
++FILES += syntax/mercury.vim
++
++COUNT_LINES := wc -l
++SED := sed
++DATE := date
++VIM := vim
++RM := /bin/rm
++
++mercury.vba: $(FILES)
++	@echo \" Vimball Archiver by Charles E. Campbell, Jr., Ph.D.>$@
++	@echo UseVimball>>$@
++	@echo finish>>$@
++	@$(foreach FILE,$(FILES),  \
++		echo "$(FILE)	[[[1">>$@; \
++		$(COUNT_LINES) < $(FILE) | $(SED) "s/\s/\n/" >>$@; \
++		cat $(FILE) >>$@; )
++
++.PHONY: install
++install: mercury.vba
++	$(VIM) -c 'so %' -c 'q' $<
++
++.PHONY: clean
++clean:
++	$(RM) mercury.vba
+diff --git a/vim/doc/mercury.txt b/vim/doc/mercury.txt
+new file mode 100644
+index 0000000..abc4c51
+--- /dev/null
++++ b/vim/doc/mercury.txt
+@@ -0,0 +1,149 @@
++*Mercury.txt*       Mercury Language Support
++                    LastChange: 2015-04-07
++                    Author: Sebastian Godelet <sebastian.godelet@outlook.com>
++
++1. Overview                                         |mercury-overview|
++2. Installation                                     |mercury-installation|
++3. Filetype plugin                                  |mercury-ftplugin|
++4. Mercury commands plugin                          |mercury-commands|
++5. Syntax highlighting                              |mercury-syntax|
++
++=============================================================================
++1. Overview                                            *mercury-overview*
++
++Mercury Syntax Highlighting Under Vim 6.0+
++For using the conceal feature, please use Vim 7.3+ with the conceal feature
++enabled.
++
++=============================================================================
++2. Installation                                         *mercury-install*
++
++2.1. Create a directory `~/.vim' if not done so far: >
++
++    $ mkdir ~/.vim
++<
++2.2. There are two ways to install the support files:
++
++2.2.1 Manual: Copy everything recursively from this directory into `~/.vim' >
++
++    $ cp -r . ~/.vim
++<
++2.2.2 Using a Vimball: In this directory, invoke: >
++
++    $ make
++    $ make install
++
++3. Ensure you have the following lines in your `~/.vimrc' file: >
++
++    filetype on
++    filetype plugin on
++    syntax enable
++<
++4. It is advisable to have the following file encoding detection lines
++in your ~/.vimrc: >
++
++    if has("multi_byte")
++      set encoding=utf-8
++      setglobal fileencoding=utf-8
++      if &termencoding == ""
++        let &termencoding = &encoding
++      endif
++    endif
++<
++5. Optionally enable |modeline| detection.  This configures vim to use the
++% vim: lines at the beginning of some source files to configure settings
++local to that file. >
++
++    set modeline
++<
++6. If you wish to change the colour scheme used by Vim's |syntax-highlighting|,
++we suggest you put the necessary commands in `~/.vim/colors/mycolours.vim'
++and append the following to the above list of commands in your `~/.vimrc': >
++
++    colors mycolours
++<
++7. If you want to use Vim's |spell-checking| feature, please insert the
++following directive after the |encoding| setting from 4. >
++
++    " Spelling (comes after encoding, to reduce load time, see :help spell)
++    :setlocal spell spelllang=en_gb
++>
++=============================================================================
++3. Filetype plugin                                      *mercury-ftplugin*
++
++=============================================================================
++4. Mercury commands plugin              *mercury-commands* *mercury_commands*
++
++mercury_commands |plugin| provides additional functionality via Vim commands:
++                                                                    *:Mmc*
++:Mmc [arg1]...      Invoke compiler (mmc), using current file when no
++                    arguments passed.
++                                                                    *:Merr*
++:Merr               Show last output from :Mmc.
++
++=============================================================================
++5. Syntax highlighting                                      *mercury-syntax*
++
++The |syntax-highlighting| for mercury can be customised in several ways,
++in your ~/.vimrc file, you can specify following options:
++
++The default highlighting for  Mercury comments is to only highlight the
++initial `%' and subsequent `line' punctuation characters, likewise
++the /* and */ from C-style comments.
++To highlight everything including the comment text, add: >
++
++    let mercury_highlight_full_comment = 1
++<
++By default, parts of lines that extend over 78 characters will be
++highlighted.  To avoid this behaviour, add: >
++
++    let mercury_no_highlight_overlong = 1
++<
++If folding is supported by the running Vim version, the setting of the
++preferred folding mode for Mercury (currently indent, as it is the fastest)
++can be disabled by >
++
++    let mercury_no_folding = 1
++<
++If you want to force the folding setting to indent (despite a different
++setting in the vimrc file), you can enforce it: >
++
++    let mercury_folding_force = 1
++<
++To facilitate better git patch management,
++spurious whitespace is marked as a warning, to suppress these, use: >
++
++    let mercury_no_highlight_trailing_whitespace = 1
++<
++For the same reasons, tabs are marked as a warning,
++if you want to disable this, please use: >
++
++    let mercury_no_highlight_tabs = 1
++<
++Highlighting of C, Java, C# and Erlang code is supported by default,
++disable (if you think loading huge files is slow) with: >
++
++    let mercury_no_highlight_foreign = 1
++<
++Enable highlighting of Tex specific directives used in comments,
++such as `' or ``'': >
++
++    let mercury_highlight_comment_special = 1
++<
++If you use Vim 7.3+ with conceal enabled but do not want any concealing
++of operators, use: >
++
++    let mercury_no_coneal = 1
++<
++To enable concealing for characters which require a good Unicode font
++and might be "too much" for some users, define: >
++
++    let mercury_conceal_extra = 1
++<
++If concealing of extra characters is enabled, one can additionally
++enable concealing for logical operators, such as <=> => <= some all
++by setting: >
++
++    let mercury_conceal_logical = 1
++<
++vim:tw=78:ts=4:ft=help:norl:et:
 diff --git a/vim/ftplugin/mercury.vim b/vim/ftplugin/mercury.vim
-index 917e46c..2083d4c 100644
+index 917e46c..9624949 100644
 --- a/vim/ftplugin/mercury.vim
 +++ b/vim/ftplugin/mercury.vim
 @@ -1,6 +1,7 @@
  " Vim syntax file
  " Language:     Mercury
 -" Maintainer:   Ralph Becket <rafe@cs.mu.oz.au>
-+" Maintainer:   Mercury Team <mercury@mercurylang.org>
-+" Last Change:  2014-07-07
++" Maintainer:   Sebastian Godelet <sebastian.godelet@outlook.com>
++" Last Change:  2015-04-06
  " vim: ts=2 sw=2 et
  
  if exists("b:did_mercury_ftplugin")
-@@ -17,7 +18,7 @@ setlocal tags+=$HOME/mercury/tags.library,$HOME/mercury/tags.compiler
+@@ -17,33 +18,40 @@ setlocal tags+=$HOME/mercury/tags.library,$HOME/mercury/tags.compiler
  
    " Handy if you use `:make'.
    "
 -setlocal makeprg=mmake
-+setlocal makeprg="mmake"
++setlocal makeprg="mmc -m"
  
    " Don't wrap over-long lines.
    "
-@@ -42,8 +43,8 @@ setlocal formatoptions=trcq
+ setlocal wrapmargin=0
+-setlocal textwidth=0
+ 
+-  " These settings allow for neater coding styles, but
+-  " should not be imposed on existing files that use,
+-  " say, the default `tabstop=8, shiftwidth=8, noexpandtab'.
++  " if you want to follow the Mercury coding standard of 78 wide columns,
++  " enable following option in your ~/.vimrc:
+   "
++  "     let g:mercury_coding_standard = 1
++  "
++if exists("mercury_coding_standard") && mercury_coding_standard
++  setlocal textwidth=78
++  if v:version >= 703
++    setlocal colorcolumn=+1
++    " Controls how autoindenting works.  See the Vim help pages for details.
++    set fo-=t " do not automatically wrap text
++    set fo+=c " auto wrap comments, using comment leader
++    set fo+=r " automatically insert the comment leader after <CR>
++    set fo+=q " enable tq feature
++  endif
++  setlocal tabstop=4
++  setlocal shiftwidth=4
++  setlocal expandtab
++endif
++
+   " It is a good idea to have a modeline comment at the top
+   " of your Mercury source files containing
+   " ` vim: ft=mercury ff=unix ts=4 sw=4 et '
+-  "
+-" setlocal tabstop=8
+-" setlocal shiftwidth=8
+-" setlocal expandtab   
+-
+-  " Controls how autoindenting works.  See the Vim help pages for details.
+-  "
+-setlocal formatoptions=trcq
  
    " <C-X>l inserts a comment line.
    "
 -nnoremap <C-X>l o0<C-D>%------------------------------------------------------------------------------%<CR><ESC>x
 -inoremap <C-X>l --------------------------------------------------------------------------------<ESC>80<BAR>C%<CR>
-+nnoremap <C-X>l o0<C-D>%----------------------------------------------------------------------------%<CR><ESC>x
-+inoremap <C-X>l ------------------------------------------------------------------------------<ESC>80<BAR>C%<CR>
++nnoremap <C-X>l o0<C-D>%--------------------------------------------------------------------------%<CR><ESC>x
++inoremap <C-X>l ----------------------------------------------------------------------------<ESC>78<BAR>C%<CR>
  
    " <F6> attempts to wrap a call up with { } braces for DCG escapes.
    "
-@@ -54,13 +55,137 @@ nnoremap <F6> I{ <ESC>%a }<ESC>j
+@@ -54,13 +62,139 @@ nnoremap <F6> I{ <ESC>%a }<ESC>j
  nnoremap <F7> 0i% <ESC>j
  nnoremap <F8> :s/% //e<CR>j
  
@@ -63,16 +294,17 @@ index 917e46c..2083d4c 100644
    " Go to the bottom window and rerun the last mmake command.
    " Reload any .err buffers that have changed.
    "
- nnoremap ,m <C-W>b:!mmake<UP><CR>
+-nnoremap ,m <C-W>b:!mmake<UP><CR>
++nnoremap ,m <C-W>b:!make<UP><CR>
  autocmd! FileChangedShell *.err vi!
 +
 +  " Match all the occurances of the variable under the cursor
 +  "
 +augroup mercuryMatchVar
-+  autocmd! CursorMoved,CursorMovedI,WinEnter <buffer> call s:Highlight_Matching_Variables()
++  autocmd! CursorMoved,CursorMovedI,WinEnter <buffer> call s:HighlightMatchingVariables()
 +augroup END
 +
-+fu! s:Highlight_Matching_Variables()
++fu! s:HighlightMatchingVariables()
 +    " Avoid that we remove the popup menu.
 +    " Return when there are no colors (looks like the cursor jumps).
 +  if pumvisible() || (&t_Co < 8 && !has("gui_running"))
@@ -85,7 +317,8 @@ index 917e46c..2083d4c 100644
 +  let l:lineL1PredStart = search("^[:a-z']", 'nWb')
 +  let l:posEnd = searchpos('\v[.]($|\s+)', 'nW')
 +
-+  while s:CurrentSynIsTransparent(l:posEnd) > 0
++    " We do not want to match a dot within strings or lists, etc.
++  while s:CurrentSynIsInRegion(l:posEnd) > 0
 +    let l:posEnd = searchpos('\v[.]($|\s+)%>' . l:posEnd[0] . 'l', 'nW')
 +  endwhile
 +
@@ -104,9 +337,9 @@ index 917e46c..2083d4c 100644
 +    let w:variable_hl_on = 0
 +  endif
 +
-+  let w:variable        = l:variable
-+  let w:lineL1PredStart = l:lineL1PredStart
-+  let w:lineL1PredEnd   = l:lineL1PredEnd
++  let w:variable         = l:variable
++  let w:lineL1PredStart  = l:lineL1PredStart
++  let w:lineL1PredEnd    = l:lineL1PredEnd
 +  let w:lineL1PredEndCol = l:posEnd[1]
 +
 +    " Abort if there is no variable under the cursor
@@ -126,9 +359,10 @@ index 917e46c..2083d4c 100644
 +        \ '%<' . (a:end   + 1) . 'l' . '/'
 +endfu
 +
-+fu! s:CurrentSynIsTransparent(pos)
++fu! s:CurrentSynIsRegion(pos)
 +  if a:pos[0] == 0|return 0|endif
 +  let l:id = synID(a:pos[0], a:pos[1], 0)
++  " TODO: Also check for mercuryString
 +  return l:id == synIDtrans(l:id) ? 1 : 0
 +endfu
 +
@@ -170,8 +404,74 @@ index 917e46c..2083d4c 100644
 +  normal! v
 +  call setpos('.', [1, w:lineL1PredEnd, w:lineL1PredEndCol])
 +endfu
+diff --git a/vim/ftplugin/mercuryhdr.sh b/vim/ftplugin/mercuryhdr.sh
+index 0005a24..7ba3b3a 100755
+--- a/vim/ftplugin/mercuryhdr.sh
++++ b/vim/ftplugin/mercuryhdr.sh
+@@ -1,35 +1,42 @@
+ #!/bin/sh
+-
++# vim: ft=sh ff=unix ts=4 sw=4 tw=78 et
++MODULE=$(echo $(basename "$1" ) | sed 's/\.m$//')
++FILE="${MODULE}.m"
+ cat <<EOF
+-%------------------------------------------------------------------------------%
+-% $1
+-% $([ -n "$USERNAME" ] && echo $USERNAME "")<$USER@$(hostname -d)>
+-% $(date)
++%----------------------------------------------------------------------------%
+ % vim: ft=mercury ff=unix ts=4 sw=4 et
+-%
+-%------------------------------------------------------------------------------%
+-
+-:- module $(echo $1 | sed 's/\./__/g;s/__m$//').
++%----------------------------------------------------------------------------%
++% File: $FILE
++% Copyright © $(date +%Y) $GIT_AUTHOR_NAME
++% Main author: $GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL>
++% Created on: $(date)
++% Stability: low
++%----------------------------------------------------------------------------%
++% TODO: module documentation
++%----------------------------------------------------------------------------%
++
++:- module $MODULE.
+ 
+ :- interface.
+ 
+-:- import_module io.
+-
++% TODO: insert predicates & functions
+ 
++%----------------------------------------------------------------------------%
+ 
+-:- pred main(io::di, io::uo) is det.
++% TODO: declare predicates & functions
+ 
+-%------------------------------------------------------------------------------%
+-%------------------------------------------------------------------------------%
++%----------------------------------------------------------------------------%
++%----------------------------------------------------------------------------%
+ 
+ :- implementation.
+ 
+-:- import_module .
++% TODO: include/import/use modules
+ 
+-%------------------------------------------------------------------------------%
++%----------------------------------------------------------------------------%
+ 
+-main -->
++% TODO: implement predicates & functions
+ 
+-%------------------------------------------------------------------------------%
+-%------------------------------------------------------------------------------%
++%----------------------------------------------------------------------------%
++:- end_module $MODULE.
++%----------------------------------------------------------------------------%
+ EOF
 diff --git a/vim/syntax/mercury.vim b/vim/syntax/mercury.vim
-index bce7bb1..66d2d01 100644
+index bce7bb1..87a12f5 100644
 --- a/vim/syntax/mercury.vim
 +++ b/vim/syntax/mercury.vim
 @@ -1,7 +1,8 @@
@@ -180,20 +480,39 @@ index bce7bb1..66d2d01 100644
  " Language:     Mercury
 -" Maintainer:   Ralph Becket <rafe@cs.mu.oz.au>
 -" vim: ts=2 sw=2 et
-+" Maintainer:   Mercury Team <mercury@mercurylang.org>
++" Maintainer:   Sebastian Godelet <sebastian.godelet@outlook.com>
 +" Extensions:   *.m *.moo
-+" Last Change:  2015-01-20
++" Last Change:  2015-04-06
  
  if exists("b:current_syntax")
    finish
-@@ -9,30 +10,85 @@ endif
+@@ -9,30 +10,23 @@ endif
  let b:current_syntax = "mercury"
  
    " Mercury is case sensitive.
 -  "
  syn case match
 +set synmaxcol=100
-+
+ 
+-  " The default highlighting for Mercury comments is to only highlight the
+-  " initial `%' and subsequent `line' punctuation characters.  To highlight
+-  " everything including the comment text, add
+-  "
+-  "   let mercury_highlight_full_comment = 1
+-  "
+-  " somewhere in your `.vimrc' file.
+-  "
+-  " By default, parts of lines that extend over 80 characters will be
+-  " highlighted.  To avoid this behaviour, add
+-  "
+-  "   let mercury_no_highlight_overlong = 1
+-  "
+-  " somewhere in your `.vimrc' file.
+-  "
+-if exists("mercury_highlight_full_comment") && mercury_highlight_full_comment
+-  syn region  mercuryComment      start=+%+ end=+.*$+                                           contains=mercuryToDo
+-else
+-  syn region  mercuryComment      start=+%[-=%*_]*+ end=+.*$+he=s-1                             contains=mercuryToDo
 +if has("folding") && (!exists("mercury_no_folding") || !mercury_no_folding)
 +    " folding is only changed (if not forced) if the Vim default (manual) is active,
 +    " this avoids conflicts with existing user settings
@@ -205,88 +524,13 @@ index bce7bb1..66d2d01 100644
 +  if &foldminlines == 1
 +    set foldminlines=10
 +  endif
-+endif
- 
--  " The default highlighting for Mercury comments is to only highlight the
--  " initial `%' and subsequent `line' punctuation characters.  To highlight
--  " everything including the comment text, add
-+  " In your .vimrc file, you can specify following options:
-   "
--  "   let mercury_highlight_full_comment = 1
-+  " The default highlighting for  Mercury comments is to only highlight the
-+  " initial `%' and subsequent `line' punctuation characters, likewise
-+  " the /* and */ from C-style comments.
-+  " To highlight everything including the comment text, add:
-   "
--  " somewhere in your `.vimrc' file.
-+  "   let mercury_highlight_full_comment = 1
-   "
--  " By default, parts of lines that extend over 80 characters will be
--  " highlighted.  To avoid this behaviour, add
-+  " By default, parts of lines that extend over 78 characters will be
-+  " highlighted.  To avoid this behaviour, add:
-   "
-   "   let mercury_no_highlight_overlong = 1
-   "
--  " somewhere in your `.vimrc' file.
-+  " If folding is supported by the running Vim version, the setting of the
-+  " preferred folding mode for Mercury (currently indent, as it is the fastest)
-+  " can be disabled by
-+  "
-+  "    let mercury_no_folding = 1
-+  "
-+  " If you want to force the folding setting to indent (despite a different
-+  " setting in the vimrc file), you can enforce it:
-+  "
-+  "    let mercury_folding_force = 1
-+  "
-+  " To facilitate better git patch management,
-+  " spurious whitespace is marked as a warning, to suppress these, use:
-+  "
-+  "   let mercury_no_highlight_trailing_whitespace = 1
-+  "
-+  " For the same reasons, tabs are marked as a warning,
-+  " if you are on the tab side of the "tabs vs spaces" war, please use:
-+  "
-+  "   let mercury_no_highlight_tabs = 1
-+  "
-+  " Highlighting of C, Java, C# and Erlang code is supported by default,
-+  " disable (if you think loading huge files is slow) with:
-+  "
-+  "   let mercury_no_highlight_foreign = 1
-+  "
-+  " Enable highlighting of Tex specific directives used in comments,
-+  " such as `' or ``'':
-+  "
-+  "   let mercury_highlight_comment_special = 1
-+  "
-+  " If you use Vim 7.3+ with conceal enabled but do not want any concealing
-+  " of operators, use:
-+  "
-+  "   let mercury_no_coneal = 1
-+  "
-+  " To enable concealing for characters which require a good Unicode font
-+  " and might be "too much" for some users, define:
-+  "
-+  "   let mercury_conceal_extra = 1
-+  "
-+  " If concealing of extra characters is enabled, one can additionally
-+  " enable concealing for logical operators, such as <=> => <= some all
-+  " by setting:
-+  "
-+  "   let mercury_conceal_logical = 1
-   "
--if exists("mercury_highlight_full_comment") && mercury_highlight_full_comment
--  syn region  mercuryComment      start=+%+ end=+.*$+                                           contains=mercuryToDo
--else
--  syn region  mercuryComment      start=+%[-=%*_]*+ end=+.*$+he=s-1                             contains=mercuryToDo
--endif
+ endif
  
 +syn match mercurySingleton      "\v<_([A-Z][a-z_A-Z0-9]*)?>"
  syn keyword mercuryKeyword      any_func
  syn keyword mercuryKeyword      any_pred
  syn keyword mercuryKeyword      atomic
-@@ -68,7 +124,7 @@ syn keyword mercuryKeyword      require_complete_switch
+@@ -68,7 +62,7 @@ syn keyword mercuryKeyword      require_complete_switch
  syn keyword mercuryKeyword      require_det
  syn keyword mercuryKeyword      require_erroneous
  syn keyword mercuryKeyword      require_failure
@@ -295,7 +539,7 @@ index bce7bb1..66d2d01 100644
  syn keyword mercuryKeyword      require_nondet
  syn keyword mercuryKeyword      require_semidet
  syn keyword mercuryKeyword      require_switch_arms_cc_multi
-@@ -76,7 +132,7 @@ syn keyword mercuryKeyword      require_switch_arms_cc_nondet
+@@ -76,7 +70,7 @@ syn keyword mercuryKeyword      require_switch_arms_cc_nondet
  syn keyword mercuryKeyword      require_switch_arms_det
  syn keyword mercuryKeyword      require_switch_arms_erroneous
  syn keyword mercuryKeyword      require_switch_arms_failure
@@ -304,7 +548,7 @@ index bce7bb1..66d2d01 100644
  syn keyword mercuryKeyword      require_switch_arms_nondet
  syn keyword mercuryKeyword      require_switch_arms_semidet
  syn keyword mercuryKeyword      semidet
-@@ -110,63 +166,583 @@ syn keyword mercuryCInterface   foreign_import_module
+@@ -110,63 +104,583 @@ syn keyword mercuryCInterface   foreign_import_module
  syn keyword mercuryCInterface   foreign_proc
  syn keyword mercuryCInterface   foreign_type
  
@@ -441,7 +685,7 @@ index bce7bb1..66d2d01 100644
 +if has("conceal") && (!exists("mercury_no_conceal") || !mercury_no_conceal)
 +  hi clear Conceal
 +  hi def link Conceal mercuryOperator
-+  set conceallevel=2
++  setlocal conceallevel=2
 +
 +    " A crude but simple "solution" to the compose operator problem
 +  syn match mercuryOperator  "`compose`" conceal cchar=o

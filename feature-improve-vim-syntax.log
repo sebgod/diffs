@@ -1,30 +1,39 @@
 Major rewrite of the Vim syntax file and plugin enhancements
 
-This patch is a major rewrite of the Vim syntax file (vim/syntax/mercury.vim),
-supporting following (optional) features:
- - highlighting of foreign code, including all doubly escaped characters such
-   as "" or \\" in strings, etc.
+This patch is a major rewrite of the Vim syntax file
+(vim/syntax/mercury.vim), supporting following (optional) features:
+ - highlighting of foreign code, including all doubly escaped characters
+   such as "" or \\" in strings, etc.
  - recognising \uXXXX \OOO\ and formatting specifiers in Mercury strings
  - concealing of certain operators and infix functions such as /\,
    the `compose` function from std_util,
    and set-calculus related operators (`union`, ...)
- - supporting markup within comments, i.e. as function headers, `  ', ``'',
-   Uris and Mercury file names, TODO, NOTE, XXX and so on.
- - support underlining of local variables within function or predicate bodies,
-   which is a feature found in SWI-Prolog. Additionally one can use <C-K>r and
-   <C-K>R to rename the underlined variable.
- - improved speed due to better overlong line detection and a sync on Mercury
-   line comments '%-----' instead of sync start, which is noticeable for large
-   files such as io.m.
- - Different way of supporting transparent comment highlighting, such that
-   spell checking works only on comments in both fully highlighted and
-   partially highlighted comments, this works best if comment markup is enables
-   (see above). Without this, spell checking would have to be enabled for
-   Mercury code as well which Vim is not good at.
+ - supporting markup within comments, i.e. as function headers, `  ',
+   ``'', URIs and Mercury file names, TODO, NOTE, XXX and so on.
+ - support underlining of local variables within function or predicate
+   bodies, which is a feature found in SWI-Prolog.
+   Additionally one can use <C-K>r and <C-K>R to rename the underlined
+   variable.
+ - improved speed due to better overlong line detection and a sync on
+   Mercury line comments '%-----' instead of sync start, which is
+   noticeable for large files such as io.m.
+ - Different way of supporting transparent comment highlighting, such
+   that spell checking works only on comments in both fully highlighted
+   and partially highlighted comments, this works best if comment
+   markup is enables (see above).
+   Without this, spell checking would have to be enabled for Mercury
+   code as well which Vim is not good at.
  - Improved folding support if no user defined setting is in place
  - Matching parenthesis detection (here meaning (),[],{}) and marking
    unbalanced parens as err
  - highlighting of spurious whitespace for better patch management.
+
+vim/Makefile:
+    A makefile to create a Vimball (.vba) and install that.
+
+vim/doc/mercury.txt:
+    Moved the documentation part from mercury.vim to a Vim documentation
+    file.
 
 vim/ftplugin/mercury.vim:
     Adds highlighting and renaming of currently selected variables,
