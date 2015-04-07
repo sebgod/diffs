@@ -1,16 +1,16 @@
 While trying to figure out why util/mfiltercc is not filtering that gcc
 `used but undefined' messages on Windows using either cmd.exe or
-the msys shell, I noticed that command redirection is handled differently
-on the win32 platform.
+the msys shell, I noticed that command redirection is handled
+differently on the win32 platform.
 So just removing the use_win32 specific code in compiler/module_cmds.m
-and building the compiler itself and all other Mercury programs I did not
-notice any observable difference besides the correct filtering of that gcc
-warning.
+and building the compiler itself and all other Mercury programs I did
+not notice any observable difference besides the correct filtering of
+that gcc warning.
 
 --
 
-Remove Windows specific error redirection handling to enable the mfiltercc
-functionality.
+Remove Windows specific error redirection handling to enable the
+mfiltercc functionality.
 
 compiler/module_cmds.m:
     see above.
