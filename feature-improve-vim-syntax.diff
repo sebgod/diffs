@@ -194,7 +194,7 @@ index 0000000..abc4c51
 +<
 +vim:tw=78:ts=4:ft=help:norl:et:
 diff --git a/vim/ftplugin/mercury.vim b/vim/ftplugin/mercury.vim
-index 917e46c..9624949 100644
+index 917e46c..d1bef44 100644
 --- a/vim/ftplugin/mercury.vim
 +++ b/vim/ftplugin/mercury.vim
 @@ -1,6 +1,7 @@
@@ -318,7 +318,7 @@ index 917e46c..9624949 100644
 +  let l:posEnd = searchpos('\v[.]($|\s+)', 'nW')
 +
 +    " We do not want to match a dot within strings or lists, etc.
-+  while s:CurrentSynIsInRegion(l:posEnd) > 0
++  while s:CurrentSynIsRegion(l:posEnd) > 0
 +    let l:posEnd = searchpos('\v[.]($|\s+)%>' . l:posEnd[0] . 'l', 'nW')
 +  endwhile
 +
