@@ -1,4 +1,4 @@
-Major rewrite of the Vim syntax file and plugin enhancements
+Major rewrite of the Vim syntax file and plugin
 
 This patch is a major rewrite of the Vim syntax file
 (vim/syntax/mercury.vim), supporting following (optional) features:
@@ -28,8 +28,15 @@ This patch is a major rewrite of the Vim syntax file
    unbalanced parens as err
  - highlighting of spurious whitespace for better patch management.
 
+vim/.gitignore:
+    Ignore mercury.vba file.
+
 vim/Makefile:
     A makefile to create a Vimball (.vba) and install that.
+
+vim/README:
+    Moved installation instructions to vim/doc/mercury.txt and point to
+    that file.
 
 vim/doc/mercury.txt:
     Moved the documentation part from mercury.vim to a Vim documentation
@@ -38,6 +45,9 @@ vim/doc/mercury.txt:
 vim/ftplugin/mercury.vim:
     Adds highlighting and renaming of currently selected variables,
     and enables ftplugin/mercuryhdr.sh on Windows.
+
+vim/ftplugin/mercuryhdr.sh:
+    Adhere to Mercury coding standards.
 
 vim/syntax/mercury.vim:
     see above.

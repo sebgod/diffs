@@ -7,21 +7,28 @@ index 0000000..8c2ad01
 +mercury.vba
 diff --git a/vim/Makefile b/vim/Makefile
 new file mode 100644
-index 0000000..0f2888b
+index 0000000..f5037cd
 --- /dev/null
 +++ b/vim/Makefile
-@@ -0,0 +1,27 @@
-+FILES := ftdetect/mercury.vim
+@@ -0,0 +1,34 @@
++# vim: ft=make noet
++FILES := doc/mercury.txt
++FILES += ftdetect/mercury.vim
 +FILES += ftplugin/mercury.vim
 +FILES += ftplugin/mercuryhdr.sh
 +FILES += syntax/mercury.vim
 +
-+COUNT_LINES := wc -l
++WC := wc
 +SED := sed
 +DATE := date
 +VIM := vim
 +RM := /bin/rm
++COUNT_LINES := $(WC) -l
 +
++# NOTE: please do not modify the first line, since that is essential to
++# the Vimball plugin
++# Also note the tab character between $(FILE) and [[[1, that seems to be 
++# necessary as well
 +mercury.vba: $(FILES)
 +	@echo \" Vimball Archiver by Charles E. Campbell, Jr., Ph.D.>$@
 +	@echo UseVimball>>$@
@@ -38,9 +45,65 @@ index 0000000..0f2888b
 +.PHONY: clean
 +clean:
 +	$(RM) mercury.vba
+diff --git a/vim/README b/vim/README
+index 67f9016..9a564aa 100644
+--- a/vim/README
++++ b/vim/README
+@@ -1,50 +1,3 @@
+ Mercury Syntax Highlighting Under Vim 6.0+
+ 
+-1. Create a diretory `~/.vim':
+-
+-    $ mkdir ~/.vim
+-
+-2. Copy everything recursively from this directory into `~/.vim':
+-
+-    $ cp -r . ~/.vim
+-
+-3. Ensure you have the following lines in your `~/.vimrc' file:
+-
+-    filetype on
+-    filetype plugin on
+-    syntax enable
+-
+-4. It is advisable to have the following file encoding detection lines
+-in your ~/.vimrc:
+-
+-    if has("multi_byte")
+-      set encoding=utf-8
+-      setglobal fileencoding=utf-8
+-      if &termencoding == ""
+-        let &termencoding = &encoding
+-      endif
+-    endif
+-
+-5. Optionally enable modeline detection.  This configures vim to use the
+-"vim:" lines at the beginning of some source files to configure settings
+-local to that file.
+-
+-    set modeline
+-
+-6. If you wish to change the colour scheme used by Vim's syntax highlighting,
+-we suggest you put the necessary commands in `~/.vim/colors/mycolours.vim'
+-and append the following to the above list of commands in your `~/.vimrc':
+-
+-    colors mycolours
+-
+-7. Vim will load `~/.vim/syntax/mercury.vim' and `~/.vim/ftplugin/mercury.vim'
+-automatically when opening a .m or .moo file.
+-
+-The syntax file describes two options you may wish to alter from your
+-`~/.vimrc' file.
+-
+-The ftplugin file defines a number of useful keyboard mappings you may wish to
+-consider.
+-
+-If you want to add a custom extension for Mercury source files, then modify the
+-ftdetect/mercury.vim file. Currently .m and .moo are recognised.
++Please consult doc/mercury.txt for installation and configuration information.
 diff --git a/vim/doc/mercury.txt b/vim/doc/mercury.txt
 new file mode 100644
-index 0000000..abc4c51
+index 0000000..d3b0765
 --- /dev/null
 +++ b/vim/doc/mercury.txt
 @@ -0,0 +1,149 @@
@@ -118,7 +181,7 @@ index 0000000..abc4c51
 +3. Filetype plugin                                      *mercury-ftplugin*
 +
 +=============================================================================
-+4. Mercury commands plugin              *mercury-commands* *mercury_commands*
++4. Mercury commands plugin                              *mercury-commands*
 +
 +mercury_commands |plugin| provides additional functionality via Vim commands:
 +                                                                    *:Mmc*
@@ -471,7 +534,7 @@ index 0005a24..7ba3b3a 100755
 +%----------------------------------------------------------------------------%
  EOF
 diff --git a/vim/syntax/mercury.vim b/vim/syntax/mercury.vim
-index bce7bb1..87a12f5 100644
+index bce7bb1..4992559 100644
 --- a/vim/syntax/mercury.vim
 +++ b/vim/syntax/mercury.vim
 @@ -1,7 +1,8 @@
@@ -482,7 +545,7 @@ index bce7bb1..87a12f5 100644
 -" vim: ts=2 sw=2 et
 +" Maintainer:   Sebastian Godelet <sebastian.godelet@outlook.com>
 +" Extensions:   *.m *.moo
-+" Last Change:  2015-04-06
++" Last Change:  2015-04-07
  
  if exists("b:current_syntax")
    finish
@@ -548,7 +611,7 @@ index bce7bb1..87a12f5 100644
  syn keyword mercuryKeyword      require_switch_arms_nondet
  syn keyword mercuryKeyword      require_switch_arms_semidet
  syn keyword mercuryKeyword      semidet
-@@ -110,63 +104,583 @@ syn keyword mercuryCInterface   foreign_import_module
+@@ -110,63 +104,586 @@ syn keyword mercuryCInterface   foreign_import_module
  syn keyword mercuryCInterface   foreign_proc
  syn keyword mercuryCInterface   foreign_type
  
@@ -751,6 +814,8 @@ index bce7bb1..87a12f5 100644
 +      \ transparent fold  contained contains=mercuryForeignMod,
 +      \ mercuryDelimiter,@mercuryComments,@mercuryFormatting,
 +      \ mercuryString,mercuryOperator,mercuryBlock
++
++syn match mercuryClauseHead /\v^[a-zA-Z_]+[(]@=/
 +
 +if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
 +    " Basic syntax highlighting for foreign code
@@ -1093,6 +1158,7 @@ index bce7bb1..87a12f5 100644
 +hi def link mercuryAtom             Constant
 +hi def link mercuryBracket          Delimiter
 +hi def link mercuryBool             Special
++hi def link mercuryClauseHead       Statement
 +hi def link mercuryCommentErr       ErrorMsg
 +hi def link mercuryCommentToken     Comment
 +hi def link mercuryCommentInfo      Identifier
