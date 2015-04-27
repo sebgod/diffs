@@ -1,0 +1,659 @@
+diff --git a/vim/doc/mercury.txt b/vim/doc/mercury.txt
+index 13fa5d3..006ff7f 100644
+--- a/vim/doc/mercury.txt
++++ b/vim/doc/mercury.txt
+@@ -33,13 +33,13 @@ enabled.
+     $ make
+     $ make install
+ 
+-3. Ensure you have the following lines in your `~/.vimrc' file: >
++2.3. Ensure you have the following lines in your `~/.vimrc' file: >
+ 
+     filetype on
+     filetype plugin on
+     syntax enable
+ <
+-4. It is advisable to have the following file encoding detection lines
++2.4. It is advisable to have the following file encoding detection lines
+ in your ~/.vimrc: >
+ 
+     if has("multi_byte")
+@@ -50,30 +50,44 @@ in your ~/.vimrc: >
+       endif
+     endif
+ <
+-5. Optionally enable |modeline| detection.  This configures vim to use the
++2.5. Optionally enable |modeline| detection.  This configures vim to use the
+ % vim: lines at the beginning of some source files to configure settings
+ local to that file. >
+ 
+     set modeline
+ <
+-6. If you wish to change the colour scheme used by Vim's |syntax-highlighting|,
++The following |modeline| is recommended:>
++
++    % vim: ft=mercury ff=unix ts=4 sw=4 et
++<
++
++2.6. If you wish to change the colour scheme used by Vim's |syntax-highlighting|,
+ we suggest you put the necessary commands in `~/.vim/colors/mycolours.vim'
+ and append the following to the above list of commands in your `~/.vimrc': >
+ 
+     colors mycolours
+ <
+-7. If you want to use Vim's |spell-checking| feature, please insert the
+-following directive after the |encoding| setting from 4. >
++2.7. If you want to use Vim's |spell-checking| feature, please insert the
++following directive after the |encoding| setting from 2.4. >
+ 
+     " Spelling (comes after encoding, to reduce load time, see :help spell)
+     :setlocal spell spelllang=en_gb
+->
++<
+ =============================================================================
+ 3. Filetype plugin                                      *mercury-ftplugin*
+ 
++If the mercury_highlight_extra option from |mercury-syntax| is enabled,
++following keybindings are active: >
++
++    <C-K>r  for renaming variables, starting with the current name
++    <C-K>R  for renaming variables, starting with an empty name
++    <C-K>m  visually marks the current predicate (for copy & pasting)
++<
+ =============================================================================
+ 4. Mercury commands plugin                              *mercury-commands*
+ 
++TODO: This is work in progess.
++
+ mercury_commands |plugin| provides additional functionality via Vim commands:
+                                                                     *:Mmc*
+ :Mmc [arg1]...      Invoke compiler (mmc), using current file when no
+@@ -99,11 +113,10 @@ highlighted.  To avoid this behaviour, add: >
+ 
+     let mercury_no_highlight_overlong = 1
+ <
+-If folding is supported by the running Vim version, the setting of the
+-preferred folding mode for Mercury (currently indent, as it is the fastest)
+-can be disabled by >
++If folding is supported by the running Vim version and you want to
++enable folding for Mercury, you can enable folding by: >
+ 
+-    let mercury_no_folding = 1
++    let mercury_folding = 1
+ <
+ If you want to force the folding setting to indent (despite a different
+ setting in the vimrc file), you can enforce it: >
+@@ -130,10 +143,10 @@ such as `' or ``'': >
+ 
+     let mercury_highlight_comment_special = 1
+ <
+-If you use Vim 7.3+ with conceal enabled but do not want any concealing
+-of operators, use: >
++If you use Vim 7.3+ with conceal enabled and you want to make use
++of that, declare: >
+ 
+-    let mercury_no_conceal = 1
++    let mercury_conceal = 1
+ <
+ To enable concealing for characters which require a good Unicode font
+ and might be "too much" for some users, define: >
+@@ -146,4 +159,14 @@ by setting: >
+ 
+     let mercury_conceal_logical = 1
+ <
++If you want to enforce 78 wide columns with automatic wrapping in
++comments, you can define: >
++
++    let mercury_coding_standard = 1
++<
++If you prefer highlighting of operators, variables and standard foreign types,
++you can enable this with: >
++
++    let mercury_highlight_extra = 1
++<
+ vim:tw=78:ts=4:ft=help:norl:et:
+diff --git a/vim/ftplugin/mercury.vim b/vim/ftplugin/mercury.vim
+index d1bef44..e8a955c 100644
+--- a/vim/ftplugin/mercury.vim
++++ b/vim/ftplugin/mercury.vim
+@@ -1,9 +1,11 @@
+ " Vim syntax file
+ " Language:     Mercury
+ " Maintainer:   Sebastian Godelet <sebastian.godelet@outlook.com>
+-" Last Change:  2015-04-06
++" Last Change:  2015-04-16
+ " vim: ts=2 sw=2 et
+ 
++" for documentation, please use :help mercury-ftplugin
++
+ if exists("b:did_mercury_ftplugin")
+   finish
+ endif
+@@ -18,7 +20,7 @@ setlocal tags+=$HOME/mercury/tags.library,$HOME/mercury/tags.compiler
+ 
+   " Handy if you use `:make'.
+   "
+-setlocal makeprg="mmc -m"
++setlocal makeprg=mmc\ --make
+ 
+   " Don't wrap over-long lines.
+   "
+@@ -33,70 +35,86 @@ if exists("mercury_coding_standard") && mercury_coding_standard
+   setlocal textwidth=78
+   if v:version >= 703
+     setlocal colorcolumn=+1
+-    " Controls how autoindenting works.  See the Vim help pages for details.
+-    set fo-=t " do not automatically wrap text
+-    set fo+=c " auto wrap comments, using comment leader
+-    set fo+=r " automatically insert the comment leader after <CR>
+-    set fo+=q " enable tq feature
++      " Controls how auto-indenting works.  See the Vim help pages for details.
++    setlocal fo-=t " do not automatically wrap text
++    setlocal fo+=c " auto wrap comments, using comment leader
++    setlocal fo+=r " automatically insert the comment leader after <CR>
++    setlocal fo+=q " enable tq feature
+   endif
+   setlocal tabstop=4
+   setlocal shiftwidth=4
+   setlocal expandtab
+ endif
+ 
+-  " It is a good idea to have a modeline comment at the top
+-  " of your Mercury source files containing
+-  " ` vim: ft=mercury ff=unix ts=4 sw=4 et '
++  " key bindings
+ 
+   " <C-X>l inserts a comment line.
+   "
+-nnoremap <C-X>l o0<C-D>%--------------------------------------------------------------------------%<CR><ESC>x
+-inoremap <C-X>l ----------------------------------------------------------------------------<ESC>78<BAR>C%<CR>
++nnoremap <buffer> <silent> <C-X>l o0<C-D>%---------------------------------------------------------------------------%<CR><ESC>x
+ 
+-  " <F6> attempts to wrap a call up with { } braces for DCG escapes.
+-  "
+-nnoremap <F6> I{ <ESC>%a }<ESC>j
+-
+-  " <F7> and <F8> comment and uncomment lines out respectively.
+-  "
+-nnoremap <F7> 0i% <ESC>j
+-nnoremap <F8> :s/% //e<CR>j
++if exists("mercury_highlight_extra") && mercury_highlight_extra
++  inoremap <buffer> <silent> <C-K>r <ESC> :call <SID>RenameCurrentVariable(1)<CR>
++  nnoremap <buffer> <silent> <C-K>r :call <SID>RenameCurrentVariable(1)<CR>
+ 
+-  " <F9> visually selects the current code block (e.g. predicate defintion,
+-  " declaration, pragma, bascially everything from (:-|^atom) to terminal .
+-  "
+-inoremap <F9> <ESC>:call <SID>MarkCurrentPred()<CR>
+-nnoremap <F9> :call <SID>MarkCurrentPred()<CR>
++  inoremap <buffer> <silent> <C-K>R <ESC> :call <SID>RenameCurrentVariable(0)<CR>
++  nnoremap <buffer> <silent> <C-K>R :call <SID>RenameCurrentVariable(0)<CR>
+ 
+-  " <C-K>r is for renaming variables, and filling out the current name
+-  " <C-K>R is for renaming variables, starting with an empty name
+-  "
+-inoremap <C-K>r <ESC> :call <SID>RenameCurrentVariable(1)<CR>
+-nnoremap <C-K>r :call <SID>RenameCurrentVariable(1)<CR>
++  inoremap <buffer> <silent> <C-K>m <ESC> :call <SID>MarkCurrentPred()<CR>
++  nnoremap <buffer> <silent> <C-K>m :call <SID>MarkCurrentPred()<CR>
+ 
+-inoremap <C-K>R <ESC> :call <SID>RenameCurrentVariable(0)<CR>
+-nnoremap <C-K>R :call <SID>RenameCurrentVariable(0)<CR>
++    " Match all the occurrences of the variable under the cursor
++    "
++  augroup mercuryMatchVar
++    autocmd! CursorMoved,CursorMovedI,WinEnter <buffer> call s:HighlightMatchingVariables()
++  augroup END
++endif
+ 
+   " <C-X>h runs `$HOME/.vim/ftplugin/mercuryhdr.sh' which inserts all the
+   " usual boilerplate for a new Mercury module.
+   "
+ if has("win32")
+-  nnoremap <C-X>h !!sh "\%userprofile\%\\.vim\\ftplugin\\mercuryhdr.sh" %<CR>:set ft=mercury ff=unix ts=4 sw=4 et<CR>
++  nnoremap <buffer> <silent> <C-X>h !!sh "\%userprofile\%\\.vim\\ftplugin\\mercuryhdr.sh" %<CR>:set ft=mercury ff=unix ts=4 sw=4 et<CR>
+ else
+-  nnoremap <C-X>h !!$HOME/.vim/ftplugin/mercuryhdr.sh %<CR>:set ft=mercury ff=unix ts=4 sw=4 et<CR>
++  nnoremap <buffer> <silent> <C-X>h !!$HOME/.vim/ftplugin/mercuryhdr.sh %<CR>:set ft=mercury ff=unix ts=4 sw=4 et<CR>
+ endif
+ 
+   " Go to the bottom window and rerun the last mmake command.
+   " Reload any .err buffers that have changed.
+   "
+-nnoremap ,m <C-W>b:!make<UP><CR>
++nnoremap <buffer> ,m <C-W>b:!make<UP><CR>
+ autocmd! FileChangedShell *.err vi!
+ 
+-  " Match all the occurances of the variable under the cursor
++nnoremap <buffer> <silent> ,p <ESC>O:- pred<space>
++nnoremap <buffer> <silent> ,f <ESC>O:- func<space>
++nnoremap <buffer> <silent> ,t <ESC>O:- type<space>
++nnoremap <buffer> <silent> ,i <ESC>O:- import_module<space>
++nnoremap <buffer> <silent> ,P <ESC>O:- pragma foreign_proc("C",<CR><TAB>(_IO0::di, _IO::uo),<CR>[will_not_call_mercury, promise_pure, thread_safe, tabled_for_io],<CR><BS>"<CR><CR><BS>").<ESC>kkkei
++nnoremap <buffer> <silent> ,M <ESC>O:- mutable(VAR, TYPE, VALUE, ground, [untrailed, attach_to_io_state]).<ESC>2FVcw
++nnoremap <buffer> <silent> ,T <ESC>Otrace [io(!IO)] (<CR>),<ESC>^O<TAB>
++
++nnoremap <buffer> <silent> <C-X>i m':1/^:- interface<CR>jj
++nnoremap <buffer> <silent> <C-X>I m':1/^:- implementation<CR>jj
++
++inoremap <buffer> <silent> <F3> ::in,<space>
++inoremap <buffer> <silent> <F4> ::out,<space>
++inoremap <buffer> <silent> <F5> io::di, io::uo)<space>
++inoremap <buffer> <silent> <F6> is det.
++
++  " In a previous version of the ftplugin, there where these keybindings
++  " defined which are presumably not used that often.
++
++  " <F6> attempts to wrap a call up with { } braces for DCG escapes.
+   "
+-augroup mercuryMatchVar
+-  autocmd! CursorMoved,CursorMovedI,WinEnter <buffer> call s:HighlightMatchingVariables()
+-augroup END
++" nnoremap <F6> I{ <ESC>%a }<ESC>j
++
++  " <F7> and <F8> comment and uncomment lines out respectively.
++  "
++  " It might be better to use (and adjust) a common script for this task
++  " http://www.vim.org/scripts/script.php?script_id=2844
++  " TODO: Provide a copy and optionally bundle within vim/Makefile
++  "
++" nnoremap <F7> 0i% <ESC>j
++" nnoremap <F8> :s/% //e<CR>j
+ 
+ fu! s:HighlightMatchingVariables()
+     " Avoid that we remove the popup menu.
+@@ -126,7 +144,7 @@ fu! s:HighlightMatchingVariables()
+         \ l:lineL1PredEnd   == w:lineL1PredEnd
+     return
+   elseif exists('w:variable_hl_on') && w:variable_hl_on
+-    " Remove any previous match.
++      " Remove any previous match.
+     2match none
+     let w:variable_hl_on = 0
+   endif
+@@ -156,7 +174,7 @@ endfu
+ fu! s:CurrentSynIsRegion(pos)
+   if a:pos[0] == 0|return 0|endif
+   let l:id = synID(a:pos[0], a:pos[1], 0)
+-  " TODO: Also check for mercuryString
++    " TODO: Also check for mercuryString
+   return l:id == synIDtrans(l:id) ? 1 : 0
+ endfu
+ 
+@@ -193,6 +211,10 @@ fu! s:RenameCurrentVariable(keepName)
+   endif
+ endfu
+ 
++  " One can use the following function to visually select the current
++  " code block (e.g. predicate definition, declaration, pragma, etc.), which
++  " might be helpful for refactoring.
++  "
+ fu! s:MarkCurrentPred()
+   call setpos('.', [0, w:lineL1PredStart, 1])
+   normal! v
+diff --git a/vim/syntax/mercury.vim b/vim/syntax/mercury.vim
+index 463f876..28dd1cd 100644
+--- a/vim/syntax/mercury.vim
++++ b/vim/syntax/mercury.vim
+@@ -2,7 +2,9 @@
+ " Language:     Mercury
+ " Maintainer:   Sebastian Godelet <sebastian.godelet@outlook.com>
+ " Extensions:   *.m *.moo
+-" Last Change:  2015-04-07
++" Last Change:  2015-04-16
++
++" for documentation, please use :help mercury-syntax
+ 
+ if exists("b:current_syntax")
+   finish
+@@ -11,9 +13,10 @@ let b:current_syntax = "mercury"
+ 
+   " Mercury is case sensitive.
+ syn case match
+-set synmaxcol=100
+ 
+-if has("folding") && (!exists("mercury_no_folding") || !mercury_no_folding)
++set synmaxcol=250
++
++if has("folding") && exists("mercury_folding") && mercury_folding
+     " folding is only changed (if not forced) if the Vim default (manual) is active,
+     " this avoids conflicts with existing user settings
+   if (&fdm == "manual") || (exists("mercury_folding_force") && mercury_folding_force)
+@@ -29,7 +32,7 @@ endif
+ syn match mercurySingleton      "\v<_([A-Z][a-z_A-Z0-9]*)?>"
+ syn keyword mercuryKeyword      any_func
+ syn keyword mercuryKeyword      any_pred
+-syn keyword mercuryKeyword      atomic
++syn keyword mercuryLogical      atomic
+ syn keyword mercuryKeyword      cc_multi
+ syn keyword mercuryKeyword      cc_nondet
+ syn keyword mercuryKeyword      det
+@@ -52,30 +55,30 @@ syn keyword mercuryKeyword      module
+ syn keyword mercuryKeyword      multi
+ syn keyword mercuryKeyword      mutable
+ syn keyword mercuryKeyword      nondet
+-syn keyword mercuryKeyword      or_else
++syn keyword mercuryLogical      or_else
+ syn keyword mercuryKeyword      pragma
+ syn keyword mercuryKeyword      pred
+ syn keyword mercuryKeyword      promise
+-syn keyword mercuryKeyword      require_cc_multi
+-syn keyword mercuryKeyword      require_cc_nondet
+-syn keyword mercuryKeyword      require_complete_switch
+-syn keyword mercuryKeyword      require_det
+-syn keyword mercuryKeyword      require_erroneous
+-syn keyword mercuryKeyword      require_failure
+-syn keyword mercuryKeyword      require_multi
+-syn keyword mercuryKeyword      require_nondet
+-syn keyword mercuryKeyword      require_semidet
+-syn keyword mercuryKeyword      require_switch_arms_cc_multi
+-syn keyword mercuryKeyword      require_switch_arms_cc_nondet
+-syn keyword mercuryKeyword      require_switch_arms_det
+-syn keyword mercuryKeyword      require_switch_arms_erroneous
+-syn keyword mercuryKeyword      require_switch_arms_failure
+-syn keyword mercuryKeyword      require_switch_arms_multi
+-syn keyword mercuryKeyword      require_switch_arms_nondet
+-syn keyword mercuryKeyword      require_switch_arms_semidet
++syn keyword mercuryPragma       require_cc_multi
++syn keyword mercuryPragma       require_cc_nondet
++syn keyword mercuryPragma       require_complete_switch
++syn keyword mercuryPragma       require_det
++syn keyword mercuryPragma       require_erroneous
++syn keyword mercuryPragma       require_failure
++syn keyword mercuryPragma       require_multi
++syn keyword mercuryPragma       require_nondet
++syn keyword mercuryPragma       require_semidet
++syn keyword mercuryPragma       require_switch_arms_cc_multi
++syn keyword mercuryPragma       require_switch_arms_cc_nondet
++syn keyword mercuryPragma       require_switch_arms_det
++syn keyword mercuryPragma       require_switch_arms_erroneous
++syn keyword mercuryPragma       require_switch_arms_failure
++syn keyword mercuryPragma       require_switch_arms_multi
++syn keyword mercuryPragma       require_switch_arms_nondet
++syn keyword mercuryPragma       require_switch_arms_semidet
+ syn keyword mercuryKeyword      semidet
+ syn keyword mercuryKeyword      solver
+-syn keyword mercuryKeyword      trace
++syn keyword mercuryPurity       trace
+ syn keyword mercuryKeyword      type
+ syn keyword mercuryKeyword      typeclass
+ syn keyword mercuryKeyword      use_module
+@@ -141,7 +144,7 @@ syn match   mercuryOperator     "//"          " (integer) divide
+ syn match   mercuryDelimiter    ","           " list seperator or conjunction
+ syn match   mercuryOperator     "-"           " substraction operator or unary minus
+ syn match   mercuryOperator     "="           " unification
+-syn match   mercuryOperator     "|"           " cons
++syn match   mercuryDelimiter    "|"           " cons
+ syn match   mercuryImplication  "->"          " 'then' arrow
+ syn match   mercuryOperator     "-->"         " DCG clause
+ syn match   mercuryOperator     "--->"        " 'typedef'
+@@ -169,16 +172,16 @@ syn match   mercuryOperator     "\~="
+ syn match   mercuryOperator     ":="         " field update
+ syn match   mercuryOperator     ":-"         " reverse implication
+ syn match   mercuryOperator     "=:="        " Structural equality (for Prolog)
+-syn match   mercuryOperator     "![:.]\?"    " State variable accessors
++syn match   mercuryPurity       "![:.]\?"    " State variable accessors
+ syn match   mercuryImplication  ";"          " Disjunction
+ syn match   mercuryOperator     "+"          " addition operator or unary plus
+ syn match   mercuryOperator     "++"         " concatenation
+ syn match   mercuryOperator     ":"
+-syn match   mercuryOperator     "::"         " Type/Mode specifier
++syn match   mercuryDelimiter    "::"         " Type/Mode specifier
+ syn match   mercuryOperator     "&"          " Parallel conjuction
+ syn match   mercuryOperator     "?-"         " Prolog compatability
+ syn match   mercuryOperator     "*"          " multiply
+-syn match   mercuryOperator     "\^"         " field access
++syn match   mercuryDelimiter    "\^"         " field access
+ syn match   mercuryOperator     /\v`[^`']+`/ " inlined operator
+ syn match   mercuryImplication  "<=>\|<=\|=>"
+ syn match   mercuryNumCode /\v<(0'.|0b[01]+|0o[0-7]+|0x\x+|[0-9]+)/
+@@ -202,14 +205,13 @@ syn match   mercuryStringEsc    /\v\\x\x+\\/           contained
+ syn match   mercuryStringEsc    /\v\\[0-7][0-7]+\\/    contained
+ syn match   mercuryStringEsc    /\v""/ contained
+   " matching unbalanced brackets (before "mercuryTerm", "mercuryBlock", ...)
+-  " TODO: Verify if contained is required
+-syn match mercuryErrInAny       "(\|\[{\|}\|\]\|)"  " contained
++syn match mercuryErrInAny       "(\|\[{\|}\|\]\|)"
+ syn match mercuryTerminator     "\v\.(\s+|$)@=" " after mercuryErrInAny
+ syn match mercuryOperator       "\.\."          " after mercuryTerminator
+ 
+   " see "https://github.com/Twinside/vim-haskellConceal"
+   " see "http://rapidtables.com/math/symbols/Basic_Math_Symbols.htm"
+-if has("conceal") && (!exists("mercury_no_conceal") || !mercury_no_conceal)
++if has("conceal") && exists("mercury_conceal") && mercury_conceal
+   hi clear Conceal
+   hi def link Conceal mercuryOperator
+   setlocal conceallevel=2
+@@ -279,7 +281,7 @@ syn region  mercuryForeignModList matchgroup=mercuryBracket start='\[' end=']'
+       \ mercuryDelimiter,@mercuryComments,@mercuryFormatting,
+       \ mercuryString,mercuryOperator,mercuryBlock
+ 
+-syn match mercuryClauseHead /\v^[a-z][a-zA-Z0-9_]*[(]@=/
++syn match mercuryClauseHead /\v^[a-zA-Z][a-zA-Z0-9_.]*[( =]@=/
+ 
+ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+     " Basic syntax highlighting for foreign code
+@@ -311,8 +313,9 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+ 
+     " C-Style syntax as a basis for C, C# and Java
+   syn keyword mercuryCLikeKeyword contained if else goto switch case for while
+-  syn keyword mercuryCLikeKeyword contained do break continue return volatile
+-  syn keyword mercuryCLikeKeyword contained extern typedef static default
++  syn keyword mercuryCLikeKeyword contained do break continue return
++  syn keyword mercuryCLikeType contained const static volatile extern typedef
++  syn keyword mercuryCLikeKeyword contained default
+   syn keyword mercuryCLikeType contained void int char long byte unsigned signed
+   syn keyword mercuryCLikeType contained struct float double enum
+   syn match mercuryCLikeDelimiter ";\|," contained
+@@ -332,7 +335,7 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+   syn cluster mercuryCLike add=@mercuryFormatting
+ 
+     " C-Language formatting with Mercury types MR_*
+-  syn keyword mercuryCType contained const size_t pid_t offset_t union
++  syn keyword mercuryCType contained size_t pid_t offset_t union
+   syn keyword mercuryCType contained MR_bool MR_Bool
+   syn keyword mercuryCType contained MR_Word MR_Integer MR_Unsigned
+   syn keyword mercuryCType contained MR_ArrayPtr MR_Float MR_file MercuryFile[Ptr]
+@@ -340,7 +343,7 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+   syn match mercuryCType "\v<MR_((Pseudo)?TypeInfo|Construct_Info|TypeCtor(Desc|Info)|AllocSiteInfoPtr)|MercuryLock>" contained
+   syn match mercuryCType "\v<(MR_)?[u]?int(_least|_fast)?(8|16|32|64)_t>" contained
+   syn match mercuryForeignIface "\v<(MR_)?[U]?INT(_LEAST|_FAST)?(8|16|32|64)_(TYPE|LENGTH_MODIFIER)>" contained
+-  syn keyword mercuryCKeyword contained typedef sizeof typeof offsetof
++  syn keyword mercuryCKeyword contained sizeof typeof offsetof
+   syn keyword mercuryCConst contained NULL EOF
+   syn keyword mercuryCConst contained CHAR_BIT CHAR_MAX CHAR_MIN
+   syn keyword mercuryCConst contained SCHAR_BIT SCHAR_MAX SCHAR_MIN
+@@ -365,6 +368,7 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+   syn keyword mercuryCppLikeKeyword contained class new delete try catch finally
+         \ instanceof abstract throw[s] extends this super base synchronize[d]
+         \ override foreach in using import ref implements
++    " sg - match true and false in foreign (Java/C#) code as boolean types
+   syn keyword mercuryCppLikeBool contained true false
+   syn keyword mercuryCppLikeConst contained null[ptr]
+   syn match mercuryCppLikeOperator "@" contained
+@@ -410,7 +414,7 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+     " Declaration for Erlang
+   syn keyword mercuryErlangKeyword contained after and andalso band begin bnot bor bsl bsr bxor case
+         \ catch cond end fun if let not of orelse query receive throw try when xor
+-  syn keyword mercuryErlangBool true false
++  " syn keyword mercuryErlangBool true false
+   syn match mercuryErlangExtNumLiteral "\v([2-9]|[12][0-9]|3[0-6])#[A-Za-z0-9]+" contained
+   syn match mercuryErlangOperator "\v[?]" contained
+   syn match mercuryErlangLogical "\v[,;.]" contained
+@@ -457,59 +461,25 @@ if !exists("mercury_no_highlight_tabs") || !mercury_no_highlight_tabs
+   syn cluster mercuryFormatting add=mercuryWhitespace
+ endif
+ 
+-  " Comment handling
+-syn match mercuryCommentFirstSpace contained "\v[%*]@<=[ ]{1}([\t ]*[\n])@!"
+-      \ nextgroup=@mercuryCommentSpecialLines
+-syn match mercuryCommentInfo contained "\v(Main |Original )?[Aa]uthor[s]?[^\n:]*[:]@="
+-      \ nextgroup=mercuryCommentOp
+-syn match mercuryCommentInfo contained "\v(File|Created on|Date|Source|Stability)[:]@="
+-      \ nextgroup=mercuryCommentOp
+-
+-syn keyword mercuryToDo contained XXX TODO NOTE[_TO_IMPLEMENTORS] MISSING HACK
+-      \ nextgroup=mercuryCommentOp
+-syn keyword mercuryToDo contained HINT WARNING IMPORTANT
+-      \ nextgroup=mercuryCommentOp
+-
+-  " End of special file markers
+-syn match mercuryCommentOp contained ": " nextgroup=@mercuryStability
+-
+-syn match mercuryCopyrightYear "\v (19|20)[0-9][0-9]([, -]+(19|20)[0-9][0-9])*" contained
+-if has("conceal") && (!exists("mercury_no_conceal") || !mercury_no_conceal)
+-  syn match mercuryCopyrightSymbol "\v\([cC]\)|©" conceal cchar=© contained nextgroup=mercuryCopyrightYear
+-else
+-  syn match mercuryCopyrightSymbol "\v\([cC]\)|©" contained nextgroup=mercuryCopyrightYear
+-endif
+-syn match mercuryCommentInfo "\vCopyright " contained nextgroup=mercuryCopyrightSymbol
+-
+-  " Matching Vim modeline
+-syn match mercuryModelineParam contained "\v<(sw|ts|tw|wm|ff|ft|et|expandtab)>"
+-syn match mercuryModelineValue contained "\v<(mercury|unix)>"
+-syn region mercuryModeline contained matchgroup=mercuryCommentToken start="vim:" end="\v[\n]@="
+-      \ oneline contains=mercuryModelineParam,mercuryModelineValue,mercuryNumCode,
+-      \ mercuryOperator
+-
+-  " Highlights the output of the Mercury error command (in extras)
+-syn match mercuryCommentErr "\v(\* )@<=###[ ]@=" contained
+-
+-  " Indicates stability of the module with colours (red, yellow, green)
+-syn keyword mercuryStabilityLow    contained low    nextgroup=mercuryStabilityTo
+-syn keyword mercuryStabilityMedium contained medium nextgroup=mercuryStabilityTo
+-syn keyword mercuryStabilityHigh   contained high
+-syn match mercuryStabilityTo "\v-| to " contained nextgroup=@mercuryStability
+-
+-  " Matches file names, email, file and http addresses (on a best effort basis).
+-  " This avoids spell checking on those,
+-  " and could also be used for plug-in development to open a browser, etc.
+-syn match mercuryCommentUri contained "\v<[-0-9a-zA-Z.+_]+[@][-0-9a-zA-Z.+_]+\.[a-zA-Z]{2,10}>"
+-syn match mercuryCommentUri contained "\v<(http[s]?|file)://[^ ><]+>"
+-syn match mercuryCommentUri contained "\v<([a-z][a-z0-9._]+[/])*[a-z][a-z0-9._]+[.]m>"
+-
+-syn cluster mercuryStability contains=mercuryStabilityLow,mercuryStabilityMedium,mercuryStabilityHigh
+-syn cluster mercuryCommentSpecialLines contains=mercuryCommentInfo,mercuryModeLine
+-syn cluster mercuryCommentDirectives contains=@Spell,mercuryToDo,mercuryCommentFirstSpace
+-syn cluster mercuryCommentDirectives add=mercuryCommentUri
+-
+ if exists("mercury_highlight_comment_special") && mercury_highlight_comment_special
++  syn keyword mercuryToDo contained XXX TODO NOTE[_TO_IMPLEMENTORS] MISSING HACK
++        \ nextgroup=mercuryCommentOp
++  syn keyword mercuryToDo contained HINT WARNING IMPORTANT
++        \ nextgroup=mercuryCommentOp
++  syn match mercuryCommentOp contained ": "
++
++  syn cluster mercuryCommentDirectives contains=@Spell,mercuryToDo,mercuryCommentUri
++
++    " Highlights the output of the Mercury error command (in extras)
++  syn match mercuryCommentErr "\v(\* )@<=###[ ]@=" contained
++
++    " Matches file names, email, file and http addresses (on a best effort basis).
++    " This avoids spell checking on those,
++    " and could also be used for plug-in development to open a browser, etc.
++  syn match mercuryCommentUri contained "\v<[-0-9a-zA-Z.+_]+[@][-0-9a-zA-Z.+_]+\.[a-zA-Z]{2,10}>"
++  syn match mercuryCommentUri contained "\v<(http[s]?|file)://[^ ><]+>"
++  syn match mercuryCommentUri contained "\v<([a-z][a-z0-9._]+[/])*[a-z][a-z0-9._]+[.]m>"
++
+   syn match mercuryCommentSlash "/" contained nextgroup=mercuryCommentArity
+   syn match mercuryCommentArity "\v\d+" contained
+   syn match mercuryCommentSingleQuote /\v'[A-Za-z._0-9()]+'/ contained nextgroup=mercuryCommentSlash
+@@ -568,7 +538,7 @@ else
+   hi def link mercuryCppLikeComment Normal
+   hi def link mercuryLeadTrailStar  Comment
+ 
+-  syn match mercuryLeadTrailStar contained "^\v[ \t]*[*]+|[*]+$" nextgroup=mercuryCommentFirstSpace
++  syn match mercuryLeadTrailStar contained "^\v[ \t]*[*]+|[*]+$"
+   syn region mercuryComment matchgroup=mercuryCommentToken start=/%[-=%*_]*/ end=/\v[\n]@=/ oneline
+         \ contains=@mercuryCommentDirectives,@mercuryFormatting
+   syn region mercuryCComment matchgroup=mercuryCommentToken start="\v/\*" end="\v[*]+/" keepend fold
+@@ -595,10 +565,8 @@ syn sync clear
+ syn sync match mercurySync grouphere NONE "\v^[%]------"
+ 
+ hi def link mercuryAccess           Identifier
+-hi def link mercurySingleton        Identifier
+ hi def link mercuryAtom             Constant
+ hi def link mercuryBracket          Delimiter
+-hi def link mercuryBool             Special
+ hi def link mercuryClauseHead       Statement
+ hi def link mercuryCommentErr       ErrorMsg
+ hi def link mercuryCommentToken     Comment
+@@ -612,8 +580,6 @@ if exists("mercury_highlight_comment_special") && mercury_highlight_comment_spec
+   hi def link mercuryCommentTexSingleQuote  String
+ endif
+ hi def link mercuryCommentOp        Operator
+-hi def link mercuryCopyrightSymbol  Operator
+-hi def link mercuryCopyrightYear    Constant
+ hi def link mercuryCInterface       mercuryPragma
+ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+   hi def link mercuryForeignId        Identifier
+@@ -631,7 +597,7 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+   hi def link mercuryCFunc            Identifier
+   hi def link mercuryCKeyword         Keyword
+   hi def link mercuryCStringFmt       mercuryStringFmt
+-  hi def link mercuryCType            Type
++  hi def link mercuryCType            mercuryForeignType
+   hi def link mercuryCPreProc         mercuryPragma
+   hi def link mercuryCppLikeBool      mercuryBool
+   hi def link mercuryCppLikeConst     Constant
+@@ -643,42 +609,37 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+   hi def link mercuryCSharpString     String
+   hi def link mercuryCSharpStringFmt  mercuryStringFmt
+   hi def link mercuryCSharpStringFmtEsc mercuryStringEsc
+-  hi def link mercuryCSharpType       Type
++  hi def link mercuryCSharpType       mercuryForeignType
+   hi def link mercuryJavaBool         mercuryBool
+-  hi def link mercuryJavaType         Type
+-  hi def link mercuryILType           Type
++  hi def link mercuryJavaType         mercuryForeignType
++  hi def link mercuryILType           mercuryForeignType
+   hi def link mercuryErlangKeyword    Keyword
+   hi def link mercuryErlangOperator   Operator
+   hi def link mercuryErlangBool       mercuryBool
+   hi def link mercuryErlangExtNumLiteral Number
+   hi def link mercuryErlangString     String
+   hi def link mercuryErlangLogical    mercuryLogical
++  if exists("mercury_highlight_extra") && mercury_highlight_extra
++    hi def link mercuryForeignType  Type
++  else
++    hi def link mercuryForeignType  Normal
++  endif
+ endif
+ hi def link mercuryDelimiter        Delimiter
+ hi def link mercuryPurity           Special
+ hi def link mercuryImplKeyword      Identifier
+ hi def link mercuryKeyword          Keyword
+-hi def link mercuryModelineParam    Identifier
+-hi def link mercuryModelineValue    Constant
+ hi def link mercuryNumCode          Number
+ hi def link mercuryFloat            Float
+ hi def link mercuryPragma           PreProc
+ hi def link mercuryForeignMod       mercuryForeignIface
+ hi def link mercuryForeignOperator  Operator
+-hi def link mercuryForeignIface     Identifier
++hi def link mercuryForeignIface     PreProc
+ hi def link mercuryImplication      Special
+ hi def link mercuryLogical          Special
+ hi def link mercuryEscErr           ErrorMsg
+ hi def link mercuryErrInAny         ErrorMsg
+-hi def link mercuryOperator         Operator
+ hi def link mercuryInlined          Operator
+-hi def mercuryStabilityLow     ctermfg=red        guifg=red        term=bold
+-      \ cterm=bold gui=bold
+-hi def mercuryStabilityMedium  ctermfg=darkyellow guifg=darkyellow term=bold
+-      \ cterm=bold gui=bold
+-hi def mercuryStabilityHigh    ctermfg=darkgreen  guifg=darkgreen  term=bold
+-      \ cterm=bold gui=bold
+-hi def link mercuryStabilityTo      Delimiter
+ hi def link mercuryString           String
+ hi def link mercuryStringEsc        Identifier
+ hi def link mercuryStringFmt        Special
+@@ -687,3 +648,8 @@ hi def link mercuryTooLong          ErrorMsg
+ hi def link mercuryWhitespace       mercuryTodo
+ hi def link mercuryTerminator       Delimiter
+ hi def link mercuryType             Type
++if exists("mercury_highlight_extra") && mercury_highlight_extra
++  hi def link mercuryOperator   Operator
++else
++  hi def link mercuryOperator   Normal
++endif
