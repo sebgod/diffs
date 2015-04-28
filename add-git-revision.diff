@@ -1,8 +1,8 @@
 diff --git a/compiler/handle_options.m b/compiler/handle_options.m
-index 5add9c3..98d2693 100644
+index efe25ab..9864040 100644
 --- a/compiler/handle_options.m
 +++ b/compiler/handle_options.m
-@@ -2566,9 +2566,10 @@ usage_errors(Errors, !IO) :-
+@@ -2747,9 +2747,10 @@ usage_errors(Errors, !IO) :-
      usage(!IO).
  
  display_compiler_version(!IO) :-
@@ -15,7 +15,7 @@ index 5add9c3..98d2693 100644
          "Copyright (C) 2013-2015 The Mercury team\n"
      ], !IO).
 diff --git a/configure.ac b/configure.ac
-index b11f4b1..d21c243 100644
+index ebf5270..69f1e4a 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -189,6 +189,16 @@ AC_CANONICAL_HOST
@@ -23,14 +23,14 @@ index b11f4b1..d21c243 100644
  AC_SUBST(FULLARCH)
  AC_DEFINE_UNQUOTED(MR_FULLARCH, "$FULLARCH")
 +AC_MSG_CHECKING([git revision])
-+GIT_REVISION=$(git describe --tags 2>/dev/null)
++GIT_REVISION=$(git rev-parse --short HEAD 2>/dev/null)
 +if test -z "$GIT_REVISION"; then
 +  AC_MSG_RESULT([no])
 +  GIT_REVISION="unknown"
 +else
 +  AC_MSG_RESULT([$GIT_REVISION])
 +fi
-+AC_SUBST(GIT_VESION)
++AC_SUBST(GIT_REVISION)
 +AC_DEFINE_UNQUOTED(MR_GIT_REVISION, "$GIT_REVISION")
  . ./VERSION
  AC_DEFINE_UNQUOTED(MR_VERSION, "$VERSION")
