@@ -292,7 +292,7 @@ index d1bef44..e8a955c 100644
    call setpos('.', [0, w:lineL1PredStart, 1])
    normal! v
 diff --git a/vim/syntax/mercury.vim b/vim/syntax/mercury.vim
-index 463f876..28dd1cd 100644
+index 463f876..a82906d 100644
 --- a/vim/syntax/mercury.vim
 +++ b/vim/syntax/mercury.vim
 @@ -2,7 +2,9 @@
@@ -558,7 +558,22 @@ index 463f876..28dd1cd 100644
    syn match mercuryCommentSlash "/" contained nextgroup=mercuryCommentArity
    syn match mercuryCommentArity "\v\d+" contained
    syn match mercuryCommentSingleQuote /\v'[A-Za-z._0-9()]+'/ contained nextgroup=mercuryCommentSlash
-@@ -568,7 +538,7 @@ else
+@@ -538,10 +508,13 @@ if exists("mercury_highlight_comment_special") && mercury_highlight_comment_spec
+         \ start="\v`[^`]@=" end="\v'" nextgroup=mercuryCommentSlash
+   syn region mercuryCommentTexDblQuote start="``" end="''" oneline contained
+         \ contains=@Spell
++  syn region mercuryCommentVimLine contained matchgroup=mercuryComment
++        \ start="\vvim[:]" end="\v[\n]@="
+ 
+-  syn cluster mercuryCommentSpecialLines add=mercuryCommentHeader
++  syn cluster mercuryCommentDirectives add=mercuryCommentHeader
+   syn cluster mercuryCommentDirectives add=mercuryCommentSingleQuote
+   syn cluster mercuryCommentDirectives add=@mercuryCommentTex
++  syn cluster mercuryCommentDirectives add=mercuryCommentVimLine
+   syn cluster mercuryCommentTex contains=mercuryCommentTexDblQuote
+   syn cluster mercuryCommentTex contains=mercuryCommentTexSingleQuote
+ endif
+@@ -568,7 +541,7 @@ else
    hi def link mercuryCppLikeComment Normal
    hi def link mercuryLeadTrailStar  Comment
  
@@ -567,7 +582,7 @@ index 463f876..28dd1cd 100644
    syn region mercuryComment matchgroup=mercuryCommentToken start=/%[-=%*_]*/ end=/\v[\n]@=/ oneline
          \ contains=@mercuryCommentDirectives,@mercuryFormatting
    syn region mercuryCComment matchgroup=mercuryCommentToken start="\v/\*" end="\v[*]+/" keepend fold
-@@ -595,10 +565,8 @@ syn sync clear
+@@ -595,10 +568,8 @@ syn sync clear
  syn sync match mercurySync grouphere NONE "\v^[%]------"
  
  hi def link mercuryAccess           Identifier
@@ -578,7 +593,7 @@ index 463f876..28dd1cd 100644
  hi def link mercuryClauseHead       Statement
  hi def link mercuryCommentErr       ErrorMsg
  hi def link mercuryCommentToken     Comment
-@@ -612,8 +580,6 @@ if exists("mercury_highlight_comment_special") && mercury_highlight_comment_spec
+@@ -612,8 +583,6 @@ if exists("mercury_highlight_comment_special") && mercury_highlight_comment_spec
    hi def link mercuryCommentTexSingleQuote  String
  endif
  hi def link mercuryCommentOp        Operator
@@ -587,7 +602,7 @@ index 463f876..28dd1cd 100644
  hi def link mercuryCInterface       mercuryPragma
  if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
    hi def link mercuryForeignId        Identifier
-@@ -631,7 +597,7 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+@@ -631,7 +600,7 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
    hi def link mercuryCFunc            Identifier
    hi def link mercuryCKeyword         Keyword
    hi def link mercuryCStringFmt       mercuryStringFmt
@@ -596,7 +611,7 @@ index 463f876..28dd1cd 100644
    hi def link mercuryCPreProc         mercuryPragma
    hi def link mercuryCppLikeBool      mercuryBool
    hi def link mercuryCppLikeConst     Constant
-@@ -643,42 +609,37 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
+@@ -643,42 +612,37 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
    hi def link mercuryCSharpString     String
    hi def link mercuryCSharpStringFmt  mercuryStringFmt
    hi def link mercuryCSharpStringFmtEsc mercuryStringEsc
@@ -648,7 +663,7 @@ index 463f876..28dd1cd 100644
  hi def link mercuryString           String
  hi def link mercuryStringEsc        Identifier
  hi def link mercuryStringFmt        Special
-@@ -687,3 +648,8 @@ hi def link mercuryTooLong          ErrorMsg
+@@ -687,3 +651,8 @@ hi def link mercuryTooLong          ErrorMsg
  hi def link mercuryWhitespace       mercuryTodo
  hi def link mercuryTerminator       Delimiter
  hi def link mercuryType             Type
