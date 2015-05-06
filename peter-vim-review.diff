@@ -1,8 +1,25 @@
 diff --git a/vim/doc/mercury.txt b/vim/doc/mercury.txt
-index 13fa5d3..006ff7f 100644
+index 13fa5d3..3f4bf10 100644
 --- a/vim/doc/mercury.txt
 +++ b/vim/doc/mercury.txt
-@@ -33,13 +33,13 @@ enabled.
+@@ -22,25 +22,28 @@ enabled.
+ 
+     $ mkdir ~/.vim
+ <
+-2.2. There are two ways to install the support files:
++2.2. For installing the Mercury language support, please change into the `vim'
++directory of your Mercury source distribution (or git clone).
+ 
+-2.2.1 Manual: Copy everything recursively from this directory into `~/.vim' >
++There are two ways to install the support files:
++
++2.2.1 Manual: Copy everything recursively from that directory into `~/.vim' >
+ 
+     $ cp -r . ~/.vim
+ <
+-2.2.2 Using a Vimball: In this directory, invoke: >
++2.2.2 Using a Vimball: In the aforementioned directory, invoke: >
+ 
      $ make
      $ make install
  
@@ -14,16 +31,18 @@ index 13fa5d3..006ff7f 100644
      syntax enable
  <
 -4. It is advisable to have the following file encoding detection lines
+-in your ~/.vimrc: >
 +2.4. It is advisable to have the following file encoding detection lines
- in your ~/.vimrc: >
++in your `~/.vimrc': >
  
      if has("multi_byte")
-@@ -50,30 +50,44 @@ in your ~/.vimrc: >
+       set encoding=utf-8
+@@ -50,30 +53,44 @@ in your ~/.vimrc: >
        endif
      endif
  <
 -5. Optionally enable |modeline| detection.  This configures vim to use the
-+2.5. Optionally enable |modeline| detection.  This configures vim to use the
++2.5. Optionally enable |modeline| detection.  This configures Vim to use the
  % vim: lines at the beginning of some source files to configure settings
  local to that file. >
  
@@ -68,7 +87,16 @@ index 13fa5d3..006ff7f 100644
  mercury_commands |plugin| provides additional functionality via Vim commands:
                                                                      *:Mmc*
  :Mmc [arg1]...      Invoke compiler (mmc), using current file when no
-@@ -99,11 +113,10 @@ highlighted.  To avoid this behaviour, add: >
+@@ -85,7 +102,7 @@ mercury_commands |plugin| provides additional functionality via Vim commands:
+ 5. Syntax highlighting                                      *mercury-syntax*
+ 
+ The |syntax-highlighting| for mercury can be customised in several ways,
+-in your ~/.vimrc file, you can specify following options:
++in your `~/.vimrc' file, you can specify following options:
+ 
+ The default highlighting for  Mercury comments is to only highlight the
+ initial `%' and subsequent `line' punctuation characters, likewise
+@@ -99,14 +116,13 @@ highlighted.  To avoid this behaviour, add: >
  
      let mercury_no_highlight_overlong = 1
  <
@@ -82,8 +110,12 @@ index 13fa5d3..006ff7f 100644
 +    let mercury_folding = 1
  <
  If you want to force the folding setting to indent (despite a different
- setting in the vimrc file), you can enforce it: >
-@@ -130,10 +143,10 @@ such as `' or ``'': >
+-setting in the vimrc file), you can enforce it: >
++setting in the `~/.vimrc' file), you can enforce it: >
+ 
+     let mercury_folding_force = 1
+ <
+@@ -130,10 +146,10 @@ such as `' or ``'': >
  
      let mercury_highlight_comment_special = 1
  <
@@ -97,7 +129,7 @@ index 13fa5d3..006ff7f 100644
  <
  To enable concealing for characters which require a good Unicode font
  and might be "too much" for some users, define: >
-@@ -146,4 +159,14 @@ by setting: >
+@@ -146,4 +162,14 @@ by setting: >
  
      let mercury_conceal_logical = 1
  <
@@ -292,7 +324,7 @@ index d1bef44..e8a955c 100644
    call setpos('.', [0, w:lineL1PredStart, 1])
    normal! v
 diff --git a/vim/syntax/mercury.vim b/vim/syntax/mercury.vim
-index 463f876..a82906d 100644
+index 463f876..221112f 100644
 --- a/vim/syntax/mercury.vim
 +++ b/vim/syntax/mercury.vim
 @@ -2,7 +2,9 @@
@@ -558,12 +590,11 @@ index 463f876..a82906d 100644
    syn match mercuryCommentSlash "/" contained nextgroup=mercuryCommentArity
    syn match mercuryCommentArity "\v\d+" contained
    syn match mercuryCommentSingleQuote /\v'[A-Za-z._0-9()]+'/ contained nextgroup=mercuryCommentSlash
-@@ -538,10 +508,13 @@ if exists("mercury_highlight_comment_special") && mercury_highlight_comment_spec
+@@ -538,10 +508,12 @@ if exists("mercury_highlight_comment_special") && mercury_highlight_comment_spec
          \ start="\v`[^`]@=" end="\v'" nextgroup=mercuryCommentSlash
    syn region mercuryCommentTexDblQuote start="``" end="''" oneline contained
          \ contains=@Spell
-+  syn region mercuryCommentVimLine contained matchgroup=mercuryComment
-+        \ start="\vvim[:]" end="\v[\n]@="
++  syn region mercuryCommentVimLine contained start="\vvim[:]" end="\v[\n]@="
  
 -  syn cluster mercuryCommentSpecialLines add=mercuryCommentHeader
 +  syn cluster mercuryCommentDirectives add=mercuryCommentHeader
@@ -573,7 +604,7 @@ index 463f876..a82906d 100644
    syn cluster mercuryCommentTex contains=mercuryCommentTexDblQuote
    syn cluster mercuryCommentTex contains=mercuryCommentTexSingleQuote
  endif
-@@ -568,7 +541,7 @@ else
+@@ -568,7 +540,7 @@ else
    hi def link mercuryCppLikeComment Normal
    hi def link mercuryLeadTrailStar  Comment
  
@@ -582,7 +613,7 @@ index 463f876..a82906d 100644
    syn region mercuryComment matchgroup=mercuryCommentToken start=/%[-=%*_]*/ end=/\v[\n]@=/ oneline
          \ contains=@mercuryCommentDirectives,@mercuryFormatting
    syn region mercuryCComment matchgroup=mercuryCommentToken start="\v/\*" end="\v[*]+/" keepend fold
-@@ -595,10 +568,8 @@ syn sync clear
+@@ -595,10 +567,8 @@ syn sync clear
  syn sync match mercurySync grouphere NONE "\v^[%]------"
  
  hi def link mercuryAccess           Identifier
@@ -593,8 +624,11 @@ index 463f876..a82906d 100644
  hi def link mercuryClauseHead       Statement
  hi def link mercuryCommentErr       ErrorMsg
  hi def link mercuryCommentToken     Comment
-@@ -612,8 +583,6 @@ if exists("mercury_highlight_comment_special") && mercury_highlight_comment_spec
+@@ -610,10 +580,9 @@ if exists("mercury_highlight_comment_special") && mercury_highlight_comment_spec
+   hi def link mercuryCommentSingleQuote  String
+   hi def link mercuryCommentTexDblQuote  String
    hi def link mercuryCommentTexSingleQuote  String
++  hi def link mercuryCommentVimLine mercuryComment
  endif
  hi def link mercuryCommentOp        Operator
 -hi def link mercuryCopyrightSymbol  Operator
