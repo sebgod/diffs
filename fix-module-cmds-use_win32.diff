@@ -1,5 +1,5 @@
 diff --git a/compiler/module_cmds.m b/compiler/module_cmds.m
-index e0c7770..03c3219 100644
+index 2b67abc..be88952 100644
 --- a/compiler/module_cmds.m
 +++ b/compiler/module_cmds.m
 @@ -568,10 +568,6 @@ invoke_system_command_maybe_filter_output(Globals, ErrorStream, Verbosity,
@@ -13,13 +13,14 @@ index e0c7770..03c3219 100644
      ;
          CommandRedirected =
              string.append_list([Command, " > ", TmpFile, " 2>&1"])
-@@ -608,19 +604,14 @@ invoke_system_command_maybe_filter_output(Globals, ErrorStream, Verbosity,
+@@ -612,21 +608,13 @@ invoke_system_command_maybe_filter_output(Globals, ErrorStream, Verbosity,
+         MaybeProcessOutput = yes(ProcessOutput)
+     ->
          io.make_temp(ProcessedTmpFile, !IO),
- 
-         % XXX we should get rid of use_win32
+-
+-        % XXX we should get rid of use_win32
 -        ( use_win32 ->
 +        (
-+            use_win32,
              get_system_env_type(Globals, SystemEnvType),
 -            ( SystemEnvType = env_type_powershell ->
 -                ProcessOutputRedirected = string.append_list(
