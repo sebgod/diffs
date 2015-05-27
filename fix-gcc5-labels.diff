@@ -1,0 +1,13 @@
+diff --git a/configure.ac b/configure.ac
+index ebf5270..256d518 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2552,7 +2552,7 @@ case "$ac_cv_prog_gcc" in yes)
+             # too.
+             #
+             case "$C_COMPILER_TYPE" in
+-                gcc_4_8_*|gcc_4_9_*)
++                gcc_4_8_*|gcc_4_9_*|gcc_5_1*)
+                   CFLAGS_FOR_GOTOS="$CFLAGS_FOR_GOTOS -fno-tree-dominator-opts"
+                 ;;
+             esac

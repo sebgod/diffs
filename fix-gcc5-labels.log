@@ -1,0 +1,6 @@
+Fix GCC labels with GCC 5.1 on x86_64 and x86.
+
+configure.ac:
+    Disable GCC's -ftree-dominator-opts optimization when using
+    GCC 5.1 on the x86_64 and x86. As with GCC 4.9,
+    its use seems incompatible with our use of GCC labels.
