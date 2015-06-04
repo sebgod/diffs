@@ -1,8 +1,8 @@
 diff --git a/compiler/compile_target_code.m b/compiler/compile_target_code.m
-index a840130..8ff78ff 100644
+index c710fcf..ec87928 100644
 --- a/compiler/compile_target_code.m
 +++ b/compiler/compile_target_code.m
-@@ -1707,15 +1707,19 @@ file_as_new_as(FileNameA, Rel, FileNameB, !IO) :-
+@@ -1708,15 +1708,19 @@ file_as_new_as(FileNameA, Rel, FileNameB, !IO) :-
  
  compare_file_timestamps(FileNameA, FileNameB, MaybeCompare, !IO) :-
      io.file_modification_time(FileNameA, TimeResultA, !IO),
@@ -13,33 +13,34 @@ index a840130..8ff78ff 100644
 -    ->
 -        compare(Compare, TimeA, TimeB),
 -        MaybeCompare = yes(Compare)
-+    ( FileNameA = FileNameB ->
-+        MaybeCompare = ( TimeResultA = ok(_) -> yes((=)) ; no )
-     ;
+-    ;
 -        MaybeCompare = no
++    ( if FileNameA = FileNameB then
++        MaybeCompare = ( if TimeResultA = ok(_) then yes((=)) else no )
++    else
 +        io.file_modification_time(FileNameB, TimeResultB, !IO),
-+        (
++        ( if
 +            TimeResultA = ok(TimeA),
 +            TimeResultB = ok(TimeB)
-+        ->
++        then
 +            compare(Compare, TimeA, TimeB),
 +            MaybeCompare = yes(Compare)
-+        ;
++        else
 +            MaybeCompare = no
 +        )
      ).
  
  %-----------------------------------------------------------------------------%
-@@ -3050,11 +3054,7 @@ create_java_archive(Globals, ErrorStream, JarFileName, ObjectList, Succeeded,
+@@ -3116,11 +3120,7 @@ create_java_exe_or_lib(Globals, ErrorStream, LinkTargetType, MainModuleName,
          io.remove_file(TempFileName, _, !IO),
  
          (
--            Succeeded = yes,
+-            Succeeded0 = yes,
 -            % Add an index, which is supposed to speed up class loading.
 -            IndexCmd = string.append_list([Jar, " i ", JarFileName]),
 -            invoke_system_command(Globals, ErrorStream, cmd_verbose_commands,
 -                IndexCmd, _, !IO)
-+            Succeeded = yes
++            Succeeded0 = yes
          ;
-             Succeeded = no,
+             Succeeded0 = no,
              io.remove_file(JarFileName, _, !IO)

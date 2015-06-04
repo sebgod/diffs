@@ -15,4 +15,4 @@ compiler/compile_target_code.m:
     Also modify compare_file_timestamps/5 to avoid a race condition
     (file access violations) which occurs under Windows when comparing
     a file with itself. Here a file always compares compares 'yes(=)' if
-    A and B are identical.
+    A and B are identical and exist.
