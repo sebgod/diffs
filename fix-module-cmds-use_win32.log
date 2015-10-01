@@ -1,3 +1,5 @@
+Fix mfiltercc gcc output filtering
+
 While trying to figure out why util/mfiltercc is not filtering that gcc
 `used but undefined' messages on Windows using either cmd.exe or
 the msys shell, I noticed that command redirection is handled
