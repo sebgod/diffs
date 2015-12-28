@@ -1,43 +1,41 @@
 diff --git a/compiler/module_cmds.m b/compiler/module_cmds.m
-index 2b67abc..be88952 100644
+index b823e9e..cb267ca 100644
 --- a/compiler/module_cmds.m
 +++ b/compiler/module_cmds.m
-@@ -568,10 +568,6 @@ invoke_system_command_maybe_filter_output(Globals, ErrorStream, Verbosity,
+@@ -578,10 +578,6 @@ invoke_system_command_maybe_filter_output(Globals, ErrorStream, Verbosity,
          % XXX can't use Bourne shell syntax to redirect on .NET
          % XXX the output will go to the wrong place!
          CommandRedirected = Command
--    ; use_win32 ->
+-    else if use_win32 then
 -        % On windows we can't in general redirect standard error in the
 -        % shell.
 -        CommandRedirected = Command ++ " > " ++ TmpFile
-     ;
+     else
          CommandRedirected =
              string.append_list([Command, " > ", TmpFile, " 2>&1"])
-@@ -612,21 +608,13 @@ invoke_system_command_maybe_filter_output(Globals, ErrorStream, Verbosity,
-         MaybeProcessOutput = yes(ProcessOutput)
-     ->
+@@ -623,20 +619,11 @@ invoke_system_command_maybe_filter_output(Globals, ErrorStream, Verbosity,
+     then
          io.make_temp(ProcessedTmpFile, !IO),
--
+ 
 -        % XXX we should get rid of use_win32
--        ( use_win32 ->
-+        (
-             get_system_env_type(Globals, SystemEnvType),
--            ( SystemEnvType = env_type_powershell ->
+-        ( if use_win32 then
+-            get_system_env_type(Globals, SystemEnvType),
+-            ( if SystemEnvType = env_type_powershell then
 -                ProcessOutputRedirected = string.append_list(
 -                    ["Get-Content ", TmpFile, " | ", ProcessOutput,
 -                        " > ", ProcessedTmpFile, " 2>&1"])
--            ;
+-            else
 -                % On windows we can't in general redirect standard
 -                % error in the shell.
 -                ProcessOutputRedirected = string.append_list(
 -                    [ProcessOutput, " < ", TmpFile, " > ",
 -                        ProcessedTmpFile])
 -            )
-+            SystemEnvType = env_type_powershell
-+        ->
++        get_system_env_type(Globals, SystemEnvType),
++        ( if SystemEnvType = env_type_powershell then
 +            ProcessOutputRedirected = string.append_list(
 +                ["Get-Content ", TmpFile, " | ", ProcessOutput,
-+                    " > ", ProcessedTmpFile, " 2>&1"])
-         ;
++                 " > ", ProcessedTmpFile, " 2>&1"])
+         else
              ProcessOutputRedirected = string.append_list(
                  [ProcessOutput, " < ", TmpFile, " > ",
