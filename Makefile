@@ -6,7 +6,7 @@ all: $(subst .diff,.apply,$(wildcard *.diff)) clean
 
 %.apply: %.diff
 	@echo apply $*
-	@cd mercury && $(GIT) apply ../$<
+	@cd mercury && $(GIT) apply $(PWD)/$<
 
 .PHONY: clean
 clean:

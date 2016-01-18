@@ -1,8 +1,8 @@
 diff --git a/compiler/handle_options.m b/compiler/handle_options.m
-index 03c4c80..d7ab6c7 100644
+index eed4d5e..15b55e9 100644
 --- a/compiler/handle_options.m
 +++ b/compiler/handle_options.m
-@@ -2424,9 +2424,10 @@ usage_errors(Globals, Specs, !IO) :-
+@@ -2412,9 +2412,10 @@ usage_errors(Globals, Specs, !IO) :-
      write_error_specs(Specs, Globals, 0, _NumWarnings, 0, _NumErrors, !IO).
  
  display_compiler_version(!IO) :-
@@ -12,7 +12,7 @@ index 03c4c80..d7ab6c7 100644
          "Mercury Compiler, version ", Version, ", on ", Fullarch, "\n",
 +        "Git revision ", GitRevision, "\n",
          "Copyright (C) 1993-2012 The University of Melbourne\n",
-         "Copyright (C) 2013-2015 The Mercury team\n"
+         "Copyright (C) 2013-2016 The Mercury team\n"
      ], !IO).
 diff --git a/configure.ac b/configure.ac
 index 1de6bbb..6106994 100644
